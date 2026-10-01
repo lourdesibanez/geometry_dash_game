@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.geometry_dash_game"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    //ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
