@@ -1,51 +1,71 @@
 // lib/components/molecules/counter_item.dart
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
 
+// Tarjeta de estadística: ícono + etiqueta chica + valor grande (+ acción opcional)
 class CounterItem extends StatelessWidget {
   final IconData icon;
+  final String label;
   final String value;
-  final Color badgeColor;
+  final Color badgeColor; // Color del ícono
+  final Widget? trailing;
 
   const CounterItem({
     super.key,
     required this.icon,
+    required this.label,
     required this.value,
     required this.badgeColor,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black, width: 2.5),
-        boxShadow: const [
-          BoxShadow(color: Colors.black, offset: Offset(3, 3), blurRadius: 0),
-        ],
+        color: isDark ? AppColors.night : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.ink, width: 2.5),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Ícono dentro de una caja neón brutalista
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: badgeColor,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.black, width: 2),
-            ),
-            child: Icon(icon, color: Colors.black, size: 18),
-          ),
+          Icon(icon, color: badgeColor, size: 26, shadows: const [
+            Shadow(color: AppColors.ink, offset: Offset(1, 1.5)),
+          ]),
           const SizedBox(width: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: isDark ? AppColors.lilac.withValues(alpha: 0.7) : AppColors.inkMuted,
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 20,
+                    height: 1.1,
+                    fontWeight: FontWeight.w900,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
+          ?trailing,
         ],
       ),
     );

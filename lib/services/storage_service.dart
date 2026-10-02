@@ -8,6 +8,7 @@ class PlayerState {
   final String accountType; // 'basic' | 'pro'
   final int diamonds;
   final bool isDarkMode;
+  final int? lastProGiftAt; // Última entrega de diamantes mensuales PRO (ms desde epoch)
 
   PlayerState({
     required this.username,
@@ -16,6 +17,7 @@ class PlayerState {
     required this.accountType,
     required this.diamonds,
     required this.isDarkMode,
+    this.lastProGiftAt,
   });
 
   // Estado inicial por defecto (simulación de usuario logueado)
@@ -38,6 +40,7 @@ class PlayerState {
         'accountType': accountType,
         'diamonds': diamonds,
         'isDarkMode': isDarkMode,
+        'lastProGiftAt': lastProGiftAt,
       };
 
   // Crear objeto desde un Map traído de JSON
@@ -49,6 +52,7 @@ class PlayerState {
       accountType: json['accountType'] ?? 'basic',
       diamonds: json['diamonds'] ?? 50,
       isDarkMode: json['isDarkMode'] ?? false,
+      lastProGiftAt: json['lastProGiftAt'],
     );
   }
 
@@ -60,6 +64,7 @@ class PlayerState {
     String? accountType,
     int? diamonds,
     bool? isDarkMode,
+    int? lastProGiftAt,
   }) {
     return PlayerState(
       username: username ?? this.username,
@@ -68,6 +73,7 @@ class PlayerState {
       accountType: accountType ?? this.accountType,
       diamonds: diamonds ?? this.diamonds,
       isDarkMode: isDarkMode ?? this.isDarkMode,
+      lastProGiftAt: lastProGiftAt ?? this.lastProGiftAt,
     );
   }
 }

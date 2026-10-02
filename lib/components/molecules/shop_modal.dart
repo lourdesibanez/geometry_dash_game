@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
+import '../atoms/button.dart';
+import 'game_modal.dart';
+
+// Paquete de diamantes a la venta
+class _DiamondPack {
+  final int amount;
+  final String price;
+  final String? tag; // Etiqueta destacada (ej: "POPULAR")
+  final double iconSize;
+
+  const _DiamondPack(this.amount, this.price, {this.tag, required this.iconSize});
+}
 
 class ShopModal extends StatelessWidget {
   final Function(int count) onBuyDiamonds;
   final VoidCallback onBuyPro;
   final bool isPro;
+  final int diamonds;
+
+  static const int proMonthlyDiamonds = 50; // Diamantes que recibe PRO cada mes
+
+  // Más diamantes = ícono más grande
+  static const _packs = [
+    _DiamondPack(50, '\$ 0,99', iconSize: 30),
+    _DiamondPack(150, '\$ 2,49', tag: 'POPULAR', iconSize: 34),
+    _DiamondPack(400, '\$ 4,99', iconSize: 38),
+    _DiamondPack(1000, '\$ 9,99', tag: 'MEJOR PRECIO', iconSize: 44),
+  ];
 
   const ShopModal({
     super.key,
     required this.onBuyDiamonds,
     required this.onBuyPro,
     required this.isPro,
+    required this.diamonds,
   });
 
   // Devuelve un Future que se completa al cerrar la tienda
@@ -18,160 +43,218 @@ class ShopModal extends StatelessWidget {
     required Function(int) onBuyDiamonds,
     required VoidCallback onBuyPro,
     required bool isPro,
+    required int diamonds,
   }) {
-    return showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => ShopModal(onBuyDiamonds: onBuyDiamonds, onBuyPro: onBuyPro, isPro: isPro),
+    return GameModal.show(
+      context,
+      builder: (_) => ShopModal(
+        onBuyDiamonds: onBuyDiamonds,
+        onBuyPro: onBuyPro,
+        isPro: isPro,
+        diamonds: diamonds,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: const Border(top: BorderSide(color: Colors.black, width: 4)),
-      ),
+    return GameModal(
+      title: 'Tienda',
+      color: AppColors.orange,
+      titleColor: AppColors.cream,
+      topRight: GameModal.closeButton(context, color: AppColors.pink),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 50,
-            height: 6,
-            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(10)),
-          ),
-          const SizedBox(height: 16),
-          const Text('TIENDA DE DIAMANTES', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 20),
-          _buildItem(context, 'BOLSA DE DIAMANTES', '+50 Gems', '\$0.99', () {
-            onBuyDiamonds(50);
-            Navigator.pop(context);
-          }),
-          const SizedBox(height: 12),
-          _buildItem(context, 'COFRE GAMER', '+200 Gems', '\$2.99', () {
-            onBuyDiamonds(200);
-            Navigator.pop(context);
-          }),
-          const SizedBox(height: 12),
-          // Compra permanente: cuenta PRO (sin publicidad)
-          _buildItem(
-            context,
-            'CUENTA PRO',
-            'Sin publicidad',
-            isPro ? 'ACTIVO' : '\$4.99',
-            isPro
-                ? null
-                : () {
-                    onBuyPro();
-                    Navigator.pop(context);
-                  },
-            icon: Icons.workspace_premium,
-            iconColor: const Color(0xFFFFD700),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItem(
-    BuildContext context,
-    String title,
-    String amount,
-    String price,
-    VoidCallback? onTap, {
-    IconData icon = Icons.diamond_outlined,
-    Color iconColor = const Color(0xFF00E5FF),
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black, width: 3),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(3, 3))],
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 30),
-          const SizedBox(width: 10),
-          // Expanded: el texto usa solo el espacio que deja el botón
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                Text(
-                  amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.green),
-                ),
-              ],
+          // Saldo actual
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.cream,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.ink, width: 2.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.diamond_rounded, color: AppColors.diamond, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Tenés $diamonds diamantes',
+                    style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFEA00)),
-            child: Text(price, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+
+          // Paquetes de diamantes en grilla de 2x2
+          for (var row = 0; row < _packs.length; row += 2) ...[
+            if (row > 0) const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildPack(context, _packs[row])),
+                const SizedBox(width: 10),
+                Expanded(child: _buildPack(context, _packs[row + 1])),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+
+          _buildProCard(context),
+          const SizedBox(height: 10),
+
+          Text(
+            'Compras simuladas: no se cobra dinero real',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.ink.withValues(alpha: 0.75), fontWeight: FontWeight.w700, fontSize: 11),
           ),
         ],
       ),
     );
   }
-}
 
-class AdModal extends StatelessWidget {
-  final VoidCallback onClose;
+  Widget _buildPack(BuildContext context, _DiamondPack pack) {
+    final tag = pack.tag;
 
-  const AdModal({super.key, required this.onClose});
-
-  static void show(BuildContext context, VoidCallback onClose) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AdModal(onClose: onClose),
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(10, 14, 10, 10),
+          decoration: BoxDecoration(
+            color: AppColors.cream,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.ink, width: 2.5),
+          ),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 46,
+                child: Center(
+                  child: Icon(Icons.diamond_rounded, color: AppColors.diamond, size: pack.iconSize, shadows: const [
+                    Shadow(color: AppColors.ink, offset: Offset(1, 2)),
+                  ]),
+                ),
+              ),
+              Text(
+                '${pack.amount}',
+                style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 24, height: 1.1),
+              ),
+              const Text(
+                'diamantes',
+                style: TextStyle(color: AppColors.inkMuted, fontWeight: FontWeight.w700, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              Button(
+                label: pack.price,
+                onPress: () {
+                  onBuyDiamonds(pack.amount);
+                  Navigator.pop(context);
+                },
+                backgroundColor: AppColors.green,
+                textColor: AppColors.ink,
+              ),
+            ],
+          ),
+        ),
+        // Etiqueta sobre el borde superior
+        if (tag != null)
+          Positioned(
+            top: -10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.pink,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.ink, width: 2),
+              ),
+              child: Text(
+                tag,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFFFFEA00),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Colors.black, width: 4),
-      ),
-      title: const Text('PUBLICIDAD RECOMPENSADA', style: TextStyle(fontWeight: FontWeight.w900)),
-      content: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.live_tv, size: 60, color: Colors.black),
-          SizedBox(height: 12),
-          Text('¡Mira este anuncio para reiniciar la partida!', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
-          Text('Pasate a PRO en la tienda y no veas más anuncios', textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            onClose();
-          },
-          child: const Text('CERRAR ANUNCIO', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+  // Suscripción PRO: sin publicidad + diamantes de regalo
+  Widget _buildProCard(BuildContext context) {
+    return GestureDetector(
+      onTap: isPro
+          ? null
+          : () {
+              onBuyPro();
+              Navigator.pop(context);
+            },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.teal,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.ink, width: 2.5),
         ),
-      ],
+        child: Row(
+          children: [
+            const Icon(Icons.workspace_premium_rounded, color: AppColors.accountPro, size: 38, shadows: [
+              Shadow(color: AppColors.ink, offset: Offset(1, 2)),
+            ]),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CUENTA PRO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      shadows: [Shadow(color: AppColors.ink, offset: Offset(1, 1.5))],
+                    ),
+                  ),
+                  Text(
+                    'Sin publicidad · Revivir a 5 💎 · $proMonthlyDiamonds 💎 por mes',
+                    style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Precio mensual, o "ACTIVO" si ya es PRO
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: isPro ? AppColors.green : AppColors.yellow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.ink, width: 2.5),
+              ),
+              child: isPro
+                  ? const Text(
+                      '✓ ACTIVO',
+                      style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 13),
+                    )
+                  : const Column(
+                      children: [
+                        Text(
+                          '\$ 3,99',
+                          style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 14),
+                        ),
+                        Text(
+                          '/MES',
+                          style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 10),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

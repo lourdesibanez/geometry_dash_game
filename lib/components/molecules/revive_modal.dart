@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
+import '../atoms/button.dart';
+import 'game_modal.dart';
 
 enum ReviveChoice { revive, shop, giveUp }
 
 class ReviveModal extends StatelessWidget {
+  final int score;
   final int diamonds;
   final int cost;
 
-  const ReviveModal({super.key, required this.diamonds, required this.cost});
+  const ReviveModal({super.key, required this.score, required this.diamonds, required this.cost});
 
   // Devuelve lo que eligió el jugador
-  static Future<ReviveChoice> show(BuildContext context, {required int diamonds, required int cost}) async {
-    final choice = await showDialog<ReviveChoice>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => ReviveModal(diamonds: diamonds, cost: cost),
+  static Future<ReviveChoice> show(
+    BuildContext context, {
+    required int score,
+    required int diamonds,
+    required int cost,
+  }) async {
+    final choice = await GameModal.show<ReviveChoice>(
+      context,
+      canDismiss: false, // Hay que elegir sí o sí
+      builder: (_) => ReviveModal(score: score, diamonds: diamonds, cost: cost),
     );
     return choice ?? ReviveChoice.giveUp;
   }
@@ -22,47 +31,38 @@ class ReviveModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final canAfford = diamonds >= cost;
 
-    return PopScope(
-      canPop: false, // El botón atrás no cierra el modal sin elegir
-      child: AlertDialog(
-        backgroundColor: const Color(0xFF00E5FF),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Colors.black, width: 4),
+    return GameModal(
+      title: '¡Chocaste!',
+      color: AppColors.yellow,
+      titleColor: Colors.white,
+      canDismiss: false,
+      actions: [
+        Button(
+          label: 'Terminar',
+          onPress: () => Navigator.pop(context, ReviveChoice.giveUp),
+          backgroundColor: AppColors.cream,
+          textColor: AppColors.ink,
         ),
-        title: const Text('¡OUCH!', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 26)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.favorite, size: 60, color: Color(0xFFFF5252)),
-            const SizedBox(height: 12),
-            Text(
-              canAfford
-                  ? '¿Usar $cost 💎 para seguir jugando?'
-                  : 'Necesitás $cost 💎 para seguir jugando',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 6),
-            Text('Tenés $diamonds 💎', style: const TextStyle(fontSize: 13)),
-          ],
+        Button(
+          // Texto corto: así los dos botones tienen letra del mismo tamaño (el costo está arriba)
+          label: canAfford ? 'Seguir' : 'Tienda',
+          icon: canAfford ? null : Icons.diamond_rounded,
+          onPress: () => Navigator.pop(context, canAfford ? ReviveChoice.revive : ReviveChoice.shop),
+          backgroundColor: AppColors.pink,
         ),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, ReviveChoice.giveUp),
-            child: const Text('TERMINAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+      ],
+      child: Column(
+        children: [
+          Text(
+            'Hiciste $score puntos · Tenés $diamonds 💎',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 14),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, canAfford ? ReviveChoice.revive : ReviveChoice.shop),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFFEA00),
-              side: const BorderSide(color: Colors.black, width: 2.5),
-            ),
-            child: Text(
-              canAfford ? 'REVIVIR' : 'IR A LA TIENDA',
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
-            ),
+          const SizedBox(height: 10),
+          GameModal.infoBox(
+            canAfford
+                ? '¿Usás $cost 💎 para seguir desde donde chocaste?'
+                : 'Necesitás $cost 💎 para seguir. ¡Conseguilos en la tienda!',
           ),
         ],
       ),
