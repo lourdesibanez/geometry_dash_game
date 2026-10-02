@@ -150,6 +150,7 @@ class _GameScreenState extends State<GameScreen> {
                 reviveCount: _game.reviveCount,
                 onPlayerHit: _handlePlayerHit,
                 onScoreTick: _game.addScore,
+                onDiamondCollected: _game.collectDiamond,
               ),
             ),
             ControlPanel(

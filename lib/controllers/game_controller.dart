@@ -95,6 +95,11 @@ class GameController extends ChangeNotifier {
     ));
   }
 
+  // El jugador agarró un diamante en pantalla
+  void collectDiamond() {
+    _update(_player.copyWith(diamonds: _player.diamonds + GameRules.diamondsPerPickup));
+  }
+
   // Choque con un obstáculo. Devuelve true si hay que ofrecer revivir
   bool hit() {
     if (_hasRevived) {

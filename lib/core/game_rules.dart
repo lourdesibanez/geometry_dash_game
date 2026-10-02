@@ -3,6 +3,10 @@ class GameRules {
   static const int pointsPerObstacle = 10; // Puntos por cada obstáculo esquivado
   static const int initialDiamonds = 50; // Diamantes con los que arranca un jugador nuevo
 
+  // Diamantes para agarrar en el juego: aparecen flotando sobre el pincho
+  static const int obstaclesPerDiamond = 3; // Uno de cada 3 pinchos trae diamante
+  static const int diamondsPerPickup = 1;
+
   // Revivir (una vez por partida)
   static const int reviveCostBasic = 10;
   static const int reviveCostPro = 5;

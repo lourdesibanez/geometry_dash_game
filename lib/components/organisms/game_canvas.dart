@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import '../../core/game_rules.dart';
 import '../../core/theme.dart';
 import '../../models/game_state.dart';
+import '../atoms/diamond_pickup.dart';
 import '../atoms/game_label.dart';
 import '../atoms/obstacle.dart';
 import '../atoms/player.dart';
@@ -14,6 +15,7 @@ class GameCanvas extends StatefulWidget {
   final int reviveCount; // Cambia al revivir: se quita el obstáculo que nos golpeó
   final VoidCallback onPlayerHit;
   final VoidCallback onScoreTick;
+  final VoidCallback onDiamondCollected;
 
   const GameCanvas({
     super.key,
@@ -22,6 +24,7 @@ class GameCanvas extends StatefulWidget {
     required this.reviveCount,
     required this.onPlayerHit,
     required this.onScoreTick,
+    required this.onDiamondCollected,
   });
 
   @override
@@ -41,13 +44,19 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
   static const double _obstacleSize = 36;
   static const double _hitboxInset = 6; // Hitbox más chica que el dibujo: rozar no mata
   static const double _cubeXFactor = 0.25; // Cubo a la izquierda: más tiempo para reaccionar
+  static const double _diamondSize = 30;
+  // Altura máxima del salto (v² / 2g ≈ 110 px): el diamante flota ahí, sobre el pincho
+  static const double _jumpPeak = _jumpVelocity * _jumpVelocity / (2 * _gravity);
 
   double _cubeY = 0.0; // Altura sobre el piso
   double _velocityY = 0.0;
   double _timeInAir = 0.0;
   double _jumpBuffer = 0.0;
   double? _obstacleX; // Borde izquierdo; null hasta conocer el tamaño del canvas
-  bool _showScorePop = false; // Efecto visual flotante +10
+  int _obstacleCount = 1; // Cuántos pinchos aparecieron en la partida (el actual incluido)
+  bool _hasDiamond = false; // El pincho actual trae un diamante sin agarrar
+  ({String text, Color color})? _pop; // Cartel flotante: "+10 PTS!" o "+1 💎"
+  int _popId = 0; // Para que un cartel nuevo no se borre con el temporizador del anterior
   bool _hasJumped = false; // Para ocultar el cartel de ayuda tras el primer salto
   double _scroll = 0.0; // Distancia recorrida: mueve las baldosas del piso
   Size? _canvasSize;
@@ -85,6 +94,8 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
       _timeInAir = 0.0;
       _jumpBuffer = 0.0;
       _obstacleX = null;
+      _obstacleCount = 1;
+      _hasDiamond = false;
       _hasJumped = false;
     });
   }
@@ -103,13 +114,16 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
     _lastTick = elapsed;
     var scored = false;
     var hit = false;
+    var collected = false;
 
     setState(() {
-      // Obstáculo
+      // Obstáculo: al salir por la izquierda vuelve a la derecha como un pincho nuevo
       var obstacleX = (_obstacleX ?? size.width) - _obstacleSpeed * dt;
       if (obstacleX < -_obstacleSize) {
         obstacleX = size.width;
         scored = true;
+        _obstacleCount++;
+        _hasDiamond = _obstacleCount % GameRules.obstaclesPerDiamond == 0;
       }
       _obstacleX = obstacleX;
       _scroll += _obstacleSpeed * dt;
@@ -128,15 +142,28 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
         }
       }
 
-      hit = _cubeRect(size).overlaps(_obstacleRect(size));
+      final cube = _cubeRect(size);
+      hit = cube.overlaps(_obstacleRect(size));
+
+      // Diamante: si el cubo lo toca, desaparece y se suma
+      if (_hasDiamond && cube.overlaps(_diamondRect(size))) {
+        _hasDiamond = false;
+        collected = true;
+      }
     });
 
     if (hit) {
       _stopGameLoop();
       widget.onPlayerHit();
-    } else if (scored) {
+      return;
+    }
+    if (collected) {
+      widget.onDiamondCollected();
+      _showPop('+${GameRules.diamondsPerPickup} 💎', AppColors.diamond);
+    }
+    if (scored) {
       widget.onScoreTick();
-      _triggerScorePop(); // Activa animación de feedback visual
+      _showPop('+${GameRules.pointsPerObstacle} PTS!', AppColors.yellow);
     }
   }
 
@@ -158,10 +185,21 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
         _obstacleSize,
       ).deflate(_hitboxInset);
 
-  void _triggerScorePop() {
-    setState(() => _showScorePop = true);
+  // Centrado sobre el pincho y a la altura máxima del salto.
+  // Sin achicar la hitbox: para agarrarlo alcanza con rozarlo
+  Rect _diamondRect(Size size) => Rect.fromLTWH(
+        (_obstacleX ?? size.width) + (_obstacleSize - _diamondSize) / 2,
+        _groundTop(size) - _jumpPeak - _diamondSize / 2,
+        _diamondSize,
+        _diamondSize,
+      );
+
+  // Muestra un cartel flotante por 600 ms (feedback visual)
+  void _showPop(String text, Color color) {
+    final id = ++_popId;
+    setState(() => _pop = (text: text, color: color));
     Future.delayed(const Duration(milliseconds: 600), () {
-      if (mounted) setState(() => _showScorePop = false);
+      if (mounted && id == _popId) setState(() => _pop = null);
     });
   }
 
@@ -209,6 +247,7 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final hint = _hintText;
+    final pop = _pop;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Semantics(
@@ -302,6 +341,13 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
                           child: const Obstacle(size: _obstacleSize),
                         ),
 
+                      // Diamante flotando sobre el pincho (uno de cada N)
+                      if (_obstacleX != null && _hasDiamond)
+                        Positioned.fromRect(
+                          rect: _diamondRect(size),
+                          child: const DiamondPickup(size: _diamondSize),
+                        ),
+
                       // Cartel de ayuda / pausa
                       if (hint != null)
                         Positioned(
@@ -311,12 +357,12 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
                           child: Center(child: GameLabel(hint)),
                         ),
 
-                      // Pop-up flotante de puntos "+10 PTS" para Niños
-                      if (_showScorePop)
-                        const Positioned(
+                      // Cartel flotante de feedback: "+10 PTS!" al esquivar, "+1 💎" al agarrar un diamante
+                      if (pop != null)
+                        Positioned(
                           top: 16,
                           right: 16,
-                          child: GameLabel('+${GameRules.pointsPerObstacle} PTS!', color: AppColors.yellow, fontSize: 15),
+                          child: GameLabel(pop.text, color: pop.color, fontSize: 15),
                         ),
 
                       // Game over: oscurece el escenario y muestra el cartel
