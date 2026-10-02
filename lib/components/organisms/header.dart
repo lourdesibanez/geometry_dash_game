@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../models/player_state.dart';
 import '../atoms/badge.dart';
+import '../atoms/button.dart';
+import '../atoms/player.dart';
 import '../molecules/counter_item.dart';
-import '../../services/storage_service.dart';
 
 class Header extends StatelessWidget {
   final PlayerState playerState;
@@ -20,7 +22,7 @@ class Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPro = playerState.accountType == 'pro';
+    final isPro = playerState.isPro;
     final colors = Theme.of(context).colorScheme;
 
     return SafeArea(
@@ -42,16 +44,7 @@ class Header extends StatelessWidget {
             Row(
               children: [
                 // Avatar: el mismo cubo del juego
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: AppColors.yellow,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.ink, width: 3),
-                  ),
-                  child: const Icon(Icons.sentiment_very_satisfied, color: AppColors.ink, size: 30),
-                ),
+                const Player(size: 46),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -68,35 +61,42 @@ class Header extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 3),
-                      // Tocar la cuenta: PRO ve su suscripción, BASIC va a la tienda
-                      GestureDetector(
-                        onTap: onAccountTap,
-                        child: CustomBadge(
-                          label: isPro ? 'PRO' : 'BASIC',
-                          backgroundColor: isPro ? AppColors.accountPro : AppColors.accountBasic,
-                          icon: isPro ? Icons.workspace_premium : null,
-                        ),
+                      // Wrap: si no entran en una línea, el récord baja a la siguiente
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          // Tocar la cuenta: PRO ve su suscripción, BASIC va a la tienda
+                          Semantics(
+                            button: true,
+                            label: 'Cuenta',
+                            child: GestureDetector(
+                              onTap: onAccountTap,
+                              child: CustomBadge(
+                                label: isPro ? 'PRO' : 'BASIC',
+                                backgroundColor: isPro ? AppColors.accountPro : AppColors.accountBasic,
+                                icon: isPro ? Icons.workspace_premium : null,
+                              ),
+                            ),
+                          ),
+                          CustomBadge(
+                            label: 'RÉCORD ${playerState.highScore}',
+                            backgroundColor: AppColors.yellow,
+                            icon: Icons.emoji_events_rounded,
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
                 // Botón de tema claro/oscuro
-                GestureDetector(
-                  onTap: onToggleTheme,
-                  child: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppColors.purple,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.ink, width: 3),
-                    ),
-                    child: Icon(
-                      playerState.isDarkMode ? Icons.wb_sunny_rounded : Icons.nightlight_round,
-                      color: AppColors.yellow,
-                      size: 22,
-                    ),
-                  ),
+                Button(
+                  icon: playerState.isDarkMode ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+                  onPress: onToggleTheme,
+                  backgroundColor: AppColors.purple,
+                  textColor: AppColors.yellow,
+                  radius: 999,
+                  tooltip: playerState.isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro',
                 ),
               ],
             ),
@@ -115,13 +115,17 @@ class Header extends StatelessWidget {
                 const SizedBox(width: 10),
                 // Toda la tarjeta abre la tienda (más lugar para números grandes)
                 Expanded(
-                  child: GestureDetector(
-                    onTap: onOpenShop,
-                    child: CounterItem(
-                      icon: Icons.diamond_rounded,
-                      label: 'Diamantes',
-                      value: '${playerState.diamonds}',
-                      badgeColor: AppColors.diamond,
+                  child: Semantics(
+                    button: true,
+                    hint: 'Abre la tienda',
+                    child: GestureDetector(
+                      onTap: onOpenShop,
+                      child: CounterItem(
+                        icon: Icons.diamond_rounded,
+                        label: 'Diamantes',
+                        value: '${playerState.diamonds}',
+                        badgeColor: AppColors.diamond,
+                      ),
                     ),
                   ),
                 ),

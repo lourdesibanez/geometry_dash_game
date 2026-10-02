@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
+import '../../core/game_rules.dart';
 import '../../core/theme.dart';
 import '../atoms/button.dart';
+import '../atoms/info_box.dart';
 import 'game_modal.dart';
 
 // Detalle de la suscripción PRO, con opción de cancelarla (pide confirmación)
 class AccountModal extends StatefulWidget {
   final DateTime? nextGiftAt;
-  final int monthlyDiamonds;
   final VoidCallback onCancelPro;
 
   const AccountModal({
     super.key,
     required this.nextGiftAt,
-    required this.monthlyDiamonds,
     required this.onCancelPro,
   });
 
   static Future<void> show(
     BuildContext context, {
     required DateTime? nextGiftAt,
-    required int monthlyDiamonds,
     required VoidCallback onCancelPro,
   }) {
     return GameModal.show(
       context,
       builder: (_) => AccountModal(
         nextGiftAt: nextGiftAt,
-        monthlyDiamonds: monthlyDiamonds,
         onCancelPro: onCancelPro,
       ),
     );
@@ -50,7 +48,15 @@ class _AccountModalState extends State<AccountModal> {
       title: _confirming ? '¿Cancelar PRO?' : 'Tu cuenta PRO',
       color: AppColors.teal,
       titleColor: Colors.white,
-      topRight: GameModal.closeButton(context),
+      topRight: Button(
+        icon: Icons.close_rounded,
+        onPress: () => Navigator.pop(context),
+        backgroundColor: AppColors.cream,
+        textColor: AppColors.ink,
+        radius: 999,
+        tooltip: 'Cerrar',
+        size: 34,
+      ),
       // Textos cortos: así los botones tienen letra del mismo tamaño
       actions: _confirming
           ? [
@@ -78,19 +84,12 @@ class _AccountModalState extends State<AccountModal> {
               ),
             ],
       child: _confirming
-          ? GameModal.infoBox(
-              'Vas a volver a ver publicidad, revivir te va a costar 10 💎 '
-              'y no vas a recibir más ${widget.monthlyDiamonds} 💎 por mes.\n'
+          ? InfoBox(
+              'Vas a volver a ver publicidad, revivir te va a costar ${GameRules.reviveCostBasic} 💎 '
+              'y no vas a recibir más ${GameRules.proMonthlyDiamonds} 💎 por mes.\n'
               'Tus diamantes actuales se quedan.',
             )
-          : Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.cream,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.ink, width: 2.5),
-              ),
+          : InfoBox.custom(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -103,7 +102,7 @@ class _AccountModalState extends State<AccountModal> {
                       Expanded(
                         child: Text(
                           nextGift != null
-                              ? 'Próximos ${widget.monthlyDiamonds} 💎: ${_formatDate(nextGift)}'
+                              ? 'Próximos ${GameRules.proMonthlyDiamonds} 💎: ${_formatDate(nextGift)}'
                               : 'Suscripción activa',
                           style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 14),
                         ),
@@ -113,8 +112,8 @@ class _AccountModalState extends State<AccountModal> {
                   const SizedBox(height: 10),
                   for (final benefit in [
                     'Sin publicidad',
-                    'Revivir a 5 💎',
-                    '${widget.monthlyDiamonds} 💎 por mes',
+                    'Revivir a ${GameRules.reviveCostPro} 💎',
+                    '${GameRules.proMonthlyDiamonds} 💎 por mes',
                   ])
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -132,18 +131,21 @@ class _AccountModalState extends State<AccountModal> {
                   const SizedBox(height: 12),
                   // Cancelar como link discreto (acción destructiva, no botón principal)
                   Center(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _confirming = true),
-                      child: const Text(
-                        'Cancelar suscripción',
-                        style: TextStyle(
-                          color: AppColors.inkMuted,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColors.inkMuted,
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: () => setState(() => _confirming = true),
+                        child: const Text(
+                          'Cancelar suscripción',
+                          style: TextStyle(
+                            color: AppColors.inkMuted,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.inkMuted,
+                          ),
                         ),
-                      ),
+                    ),
                     ),
                   ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../atoms/button.dart';
+import '../atoms/info_box.dart';
 import 'game_modal.dart';
 
 enum ReviveChoice { revive, shop, giveUp }
@@ -59,7 +60,7 @@ class ReviveModal extends StatelessWidget {
             style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 14),
           ),
           const SizedBox(height: 10),
-          GameModal.infoBox(
+          InfoBox(
             canAfford
                 ? '¿Usás $cost 💎 para seguir desde donde chocaste?'
                 : 'Necesitás $cost 💎 para seguir. ¡Conseguilos en la tienda!',

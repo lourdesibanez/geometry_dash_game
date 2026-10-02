@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../atoms/badge.dart';
 import '../atoms/button.dart';
+import '../atoms/info_box.dart';
 import 'game_modal.dart';
 
 // Publicidad simulada: se puede cerrar recién cuando termina la cuenta regresiva
@@ -62,17 +64,10 @@ class _AdModalState extends State<AdModal> {
       title: 'Publicidad',
       color: AppColors.pink,
       canDismiss: false, // El botón atrás no saltea el anuncio
-      topRight: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.cream,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.ink, width: 2.5),
-        ),
-        child: Text(
-          '0:${_remaining.toString().padLeft(2, '0')}',
-          style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 13),
-        ),
+      topRight: CustomBadge(
+        label: '0:${_remaining.toString().padLeft(2, '0')}',
+        backgroundColor: AppColors.cream,
+        fontSize: 13,
       ),
       actions: [
         Button(
@@ -97,7 +92,7 @@ class _AdModalState extends State<AdModal> {
         children: [
           _buildAdVideo(),
           const SizedBox(height: 12),
-          GameModal.infoBox('Después del anuncio arranca tu partida.\n¿Sin anuncios? ¡Pasate a PRO!'),
+          const InfoBox('Después del anuncio arranca tu partida.\n¿Sin anuncios? ¡Pasate a PRO!'),
         ],
       ),
     );

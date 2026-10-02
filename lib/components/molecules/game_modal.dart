@@ -2,6 +2,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../atoms/button.dart';
+import '../atoms/info_box.dart';
 
 // Marco común de los modales (tienda, publicidad, revivir):
 // tarjeta de color con contorno azul marino, título amarillo, contenido y botones.
@@ -125,44 +126,9 @@ class GameModal extends StatelessWidget {
             backgroundColor: AppColors.pink,
           ),
         ],
-        child: infoBox(message),
+        child: InfoBox(message),
       ),
     );
     return result ?? false; // Tocar afuera o "atrás" cuenta como NO
-  }
-
-  // Botón circular "X" para el rincón superior derecho
-  static Widget closeButton(BuildContext context, {Color color = AppColors.cream}) {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.ink, width: 2.5),
-        ),
-        child: const Icon(Icons.close_rounded, color: AppColors.ink, size: 20),
-      ),
-    );
-  }
-
-  // Recuadro crema para textos explicativos
-  static Widget infoBox(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.ink, width: 2.5),
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700, fontSize: 14),
-      ),
-    );
   }
 }

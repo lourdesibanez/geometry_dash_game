@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/game_rules.dart';
 import '../../core/theme.dart';
+import '../atoms/badge.dart';
 import '../atoms/button.dart';
 import 'game_modal.dart';
 
@@ -14,12 +16,10 @@ class _DiamondPack {
 }
 
 class ShopModal extends StatelessWidget {
-  final Function(int count) onBuyDiamonds;
+  final ValueChanged<int> onBuyDiamonds; // Recibe la cantidad comprada
   final VoidCallback onBuyPro;
   final bool isPro;
   final int diamonds;
-
-  static const int proMonthlyDiamonds = 50; // Diamantes que recibe PRO cada mes
 
   // Más diamantes = ícono más grande
   static const _packs = [
@@ -40,7 +40,7 @@ class ShopModal extends StatelessWidget {
   // Devuelve un Future que se completa al cerrar la tienda
   static Future<void> show(
     BuildContext context, {
-    required Function(int) onBuyDiamonds,
+    required ValueChanged<int> onBuyDiamonds,
     required VoidCallback onBuyPro,
     required bool isPro,
     required int diamonds,
@@ -62,30 +62,26 @@ class ShopModal extends StatelessWidget {
       title: 'Tienda',
       color: AppColors.orange,
       titleColor: AppColors.cream,
-      topRight: GameModal.closeButton(context, color: AppColors.pink),
+      topRight: Button(
+        icon: Icons.close_rounded,
+        onPress: () => Navigator.pop(context),
+        backgroundColor: AppColors.pink,
+        textColor: AppColors.ink,
+        radius: 999,
+        tooltip: 'Cerrar',
+        size: 34,
+      ),
       child: Column(
         children: [
           // Saldo actual
           Align(
             alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.cream,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.ink, width: 2.5),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.diamond_rounded, color: AppColors.diamond, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Tenés $diamonds diamantes',
-                    style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 13),
-                  ),
-                ],
-              ),
+            child: CustomBadge(
+              label: 'Tenés $diamonds diamantes',
+              backgroundColor: AppColors.cream,
+              icon: Icons.diamond_rounded,
+              iconColor: AppColors.diamond,
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 16),
@@ -166,17 +162,11 @@ class ShopModal extends StatelessWidget {
         if (tag != null)
           Positioned(
             top: -10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.pink,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.ink, width: 2),
-              ),
-              child: Text(
-                tag,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5),
-              ),
+            child: CustomBadge(
+              label: tag,
+              backgroundColor: AppColors.pink,
+              textColor: Colors.white,
+              fontSize: 10,
             ),
           ),
       ],
@@ -185,74 +175,78 @@ class ShopModal extends StatelessWidget {
 
   // Suscripción PRO: sin publicidad + diamantes de regalo
   Widget _buildProCard(BuildContext context) {
-    return GestureDetector(
-      onTap: isPro
-          ? null
-          : () {
-              onBuyPro();
-              Navigator.pop(context);
-            },
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.teal,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.ink, width: 2.5),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.workspace_premium_rounded, color: AppColors.accountPro, size: 38, shadows: [
-              Shadow(color: AppColors.ink, offset: Offset(1, 2)),
-            ]),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CUENTA PRO',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      shadows: [Shadow(color: AppColors.ink, offset: Offset(1, 1.5))],
+    return Semantics(
+      button: true,
+      enabled: !isPro,
+      child: GestureDetector(
+        onTap: isPro
+            ? null
+            : () {
+                onBuyPro();
+                Navigator.pop(context);
+              },
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.teal,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.ink, width: 2.5),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: AppColors.accountPro, size: 38, shadows: [
+                Shadow(color: AppColors.ink, offset: Offset(1, 2)),
+              ]),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'CUENTA PRO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        shadows: [Shadow(color: AppColors.ink, offset: Offset(1, 1.5))],
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Sin publicidad · Revivir a 5 💎 · $proMonthlyDiamonds 💎 por mes',
-                    style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Precio mensual, o "ACTIVO" si ya es PRO
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: isPro ? AppColors.green : AppColors.yellow,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.ink, width: 2.5),
-              ),
-              child: isPro
-                  ? const Text(
-                      '✓ ACTIVO',
-                      style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 13),
-                    )
-                  : const Column(
-                      children: [
-                        Text(
-                          '\$ 3,99',
-                          style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 14),
-                        ),
-                        Text(
-                          '/MES',
-                          style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 10),
-                        ),
-                      ],
+                    Text(
+                      'Sin publicidad · Revivir a ${GameRules.reviveCostPro} 💎 · ${GameRules.proMonthlyDiamonds} 💎 por mes',
+                      style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700, fontSize: 12),
                     ),
-            ),
-          ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Precio mensual, o "ACTIVO" si ya es PRO
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isPro ? AppColors.green : AppColors.yellow,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.ink, width: 2.5),
+                ),
+                child: isPro
+                    ? const Text(
+                        '✓ ACTIVO',
+                        style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 13),
+                      )
+                    : const Column(
+                        children: [
+                          Text(
+                            GameRules.proMonthlyPrice,
+                            style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 14),
+                          ),
+                          Text(
+                            '/MES',
+                            style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 10),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,8 +1,12 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import '../../core/theme.dart';
-import '../organisms/control_panel.dart';
 import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import '../../core/game_rules.dart';
+import '../../core/theme.dart';
+import '../../models/game_state.dart';
+import '../atoms/game_label.dart';
+import '../atoms/obstacle.dart';
+import '../atoms/player.dart';
 
 class GameCanvas extends StatefulWidget {
   final GameState gameState;
@@ -24,7 +28,7 @@ class GameCanvas extends StatefulWidget {
   State<GameCanvas> createState() => _GameCanvasState();
 }
 
-class _GameCanvasState extends State<GameCanvas> {
+class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateMixin {
   // Física en píxeles y segundos. Ajustada para niños: salto alto y con margen,
   // pero con la sensación de Geometry Dash (sube rápido, flota, cae acelerando).
   static const double _gravity = 1800;
@@ -47,9 +51,11 @@ class _GameCanvasState extends State<GameCanvas> {
   bool _hasJumped = false; // Para ocultar el cartel de ayuda tras el primer salto
   double _scroll = 0.0; // Distancia recorrida: mueve las baldosas del piso
   Size? _canvasSize;
-  Timer? _gameLoop;
-  final Stopwatch _clock = Stopwatch()..start();
-  double _lastTick = 0.0;
+
+  // Bucle del juego: el Ticker llama a _tick una vez por cuadro, sincronizado con
+  // el refresco de la pantalla (vsync), y se pausa solo si la app queda en segundo plano
+  late final Ticker _gameLoop = createTicker(_tick);
+  Duration _lastTick = Duration.zero;
 
   bool get _isAirborne => _cubeY > 0.0 || _velocityY > 0.0;
 
@@ -66,7 +72,7 @@ class _GameCanvasState extends State<GameCanvas> {
       setState(() => _obstacleX = null); // Reaparece en el borde derecho
     }
     if (widget.gameState == GameState.playing) {
-      if (_gameLoop == null) _startGameLoop();
+      if (!_gameLoop.isActive) _startGameLoop();
     } else {
       _stopGameLoop();
     }
@@ -84,18 +90,17 @@ class _GameCanvasState extends State<GameCanvas> {
   }
 
   void _startGameLoop() {
-    _gameLoop?.cancel();
-    _lastTick = _clock.elapsedMicroseconds / 1e6;
-    _gameLoop = Timer.periodic(const Duration(milliseconds: 16), (_) => _tick());
+    _lastTick = Duration.zero; // Al arrancar, el Ticker vuelve a contar desde cero
+    _gameLoop.start();
   }
 
-  void _tick() {
+  // elapsed: tiempo desde que arrancó el Ticker. dt = segundos desde el cuadro anterior
+  void _tick(Duration elapsed) {
     final size = _canvasSize;
     if (size == null) return;
 
-    final now = _clock.elapsedMicroseconds / 1e6;
-    final dt = (now - _lastTick).clamp(0.0, 0.05);
-    _lastTick = now;
+    final dt = ((elapsed - _lastTick).inMicroseconds / 1e6).clamp(0.0, 0.05);
+    _lastTick = elapsed;
     var scored = false;
     var hit = false;
 
@@ -161,8 +166,7 @@ class _GameCanvasState extends State<GameCanvas> {
   }
 
   void _stopGameLoop() {
-    _gameLoop?.cancel();
-    _gameLoop = null;
+    if (_gameLoop.isActive) _gameLoop.stop();
   }
 
   void _startJump() {
@@ -185,25 +189,8 @@ class _GameCanvasState extends State<GameCanvas> {
 
   @override
   void dispose() {
-    _stopGameLoop();
+    _gameLoop.dispose();
     super.dispose();
-  }
-
-  // Cartel tipo píldora (ayuda, pausa)
-  Widget _pill(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.ink, width: 3),
-        boxShadow: const [BoxShadow(color: AppColors.ink, offset: Offset(0, 3))],
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.6),
-      ),
-    );
   }
 
   String? get _hintText {
@@ -224,161 +211,132 @@ class _GameCanvasState extends State<GameCanvas> {
     final hint = _hintText;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: (_) => _jump(), // onTapDown responde al instante, sin esperar a soltar
-      // Marco turquesa con contorno azul marino
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: AppColors.teal,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.ink, width: 3),
-          boxShadow: const [
-            BoxShadow(color: AppColors.ink, offset: Offset(0, 5), blurRadius: 0),
-          ],
-        ),
+    return Semantics(
+      label: 'Área de juego',
+      hint: 'Tocá para saltar',
+      child: GestureDetector(
+        onTapDown: (_) => _jump(), // onTapDown responde al instante, sin esperar a soltar
+        // Marco turquesa con contorno azul marino
         child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            color: AppColors.teal,
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppColors.ink, width: 3),
+            boxShadow: const [
+              BoxShadow(color: AppColors.ink, offset: Offset(0, 5), blurRadius: 0),
+            ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final size = constraints.biggest;
-                _canvasSize = size;
-                final groundTop = _groundTop(size);
-                final cubeTop = groundTop - _cubeY - _cubeSize;
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.ink, width: 3),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final size = constraints.biggest;
+                  _canvasSize = size;
+                  final groundTop = _groundTop(size);
+                  final cubeTop = groundTop - _cubeY - _cubeSize;
 
-                return Stack(
-                  children: [
-                    // Cielo con degradé (día o noche) y grilla suave
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: isDark
-                                ? const [AppColors.skyTopNight, AppColors.skyBottomNight]
-                                : const [AppColors.skyTop, AppColors.skyBottom],
-                          ),
-                        ),
-                        child: CustomPaint(painter: _GridPainter(isDark)),
-                      ),
-                    ),
-
-                    // Piso con baldosas que se mueven
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      height: _groundHeight,
-                      child: CustomPaint(
-                        painter: _GroundPainter(_scroll, isDark ? AppColors.groundNight : AppColors.ground),
-                      ),
-                    ),
-
-                    // Estela del cubo mientras vuela
-                    if (_isAirborne)
-                      for (var i = 1; i <= 3; i++)
-                        Positioned(
-                          left: _cubeLeft(size) - i * 14.0,
-                          top: cubeTop + _cubeSize / 2 + i * 4.0,
-                          child: Opacity(
-                            opacity: 0.6 - i * 0.15,
-                            child: Container(
-                              width: 12.0 - i * 2,
-                              height: 12.0 - i * 2,
-                              color: AppColors.cream,
+                  return Stack(
+                    children: [
+                      // Cielo con degradé (día o noche) y grilla suave
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: isDark
+                                  ? const [AppColors.skyTopNight, AppColors.skyBottomNight]
+                                  : const [AppColors.skyTop, AppColors.skyBottom],
                             ),
                           ),
-                        ),
-
-                    // Personaje: Cubo con carita y rotación
-                    Positioned(
-                      left: _cubeLeft(size),
-                      top: cubeTop,
-                      child: Transform.rotate(
-                        angle: _rotationAngle,
-                        child: Container(
-                          width: _cubeSize,
-                          height: _cubeSize,
-                          decoration: BoxDecoration(
-                            color: AppColors.yellow,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.ink, width: 3),
-                          ),
-                          child: const Icon(Icons.sentiment_very_satisfied, color: AppColors.ink, size: 30),
+                          child: CustomPaint(painter: _GridPainter(isDark)),
                         ),
                       ),
-                    ),
 
-                    // Obstáculo: dos pinchos
-                    if (_obstacleX != null)
+                      // Piso con baldosas que se mueven
                       Positioned(
-                        left: _obstacleX,
-                        top: groundTop - _obstacleSize,
-                        width: _obstacleSize,
-                        height: _obstacleSize,
-                        child: CustomPaint(painter: _SpikesPainter()),
-                      ),
-
-                    // Cartel de ayuda / pausa
-                    if (hint != null)
-                      Positioned(
-                        top: 16,
                         left: 0,
                         right: 0,
-                        child: Center(child: _pill(hint)),
+                        bottom: 0,
+                        height: _groundHeight,
+                        child: CustomPaint(
+                          painter: _GroundPainter(_scroll, isDark ? AppColors.groundNight : AppColors.ground),
+                        ),
                       ),
 
-                    // Pop-up flotante de puntos "+10 PTS" para Niños
-                    if (_showScorePop)
+                      // Estela del cubo mientras vuela
+                      if (_isAirborne)
+                        for (var i = 1; i <= 3; i++)
+                          Positioned(
+                            left: _cubeLeft(size) - i * 14.0,
+                            top: cubeTop + _cubeSize / 2 + i * 4.0,
+                            child: Opacity(
+                              opacity: 0.6 - i * 0.15,
+                              child: Container(
+                                width: 12.0 - i * 2,
+                                height: 12.0 - i * 2,
+                                color: AppColors.cream,
+                              ),
+                            ),
+                          ),
+
+                      // Personaje: Cubo con carita y rotación
                       Positioned(
-                        top: 16,
-                        right: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.yellow,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: AppColors.ink, width: 3),
-                            boxShadow: const [BoxShadow(color: AppColors.ink, offset: Offset(0, 3))],
-                          ),
-                          child: const Text(
-                            '+10 PTS!',
-                            style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.ink, fontSize: 15),
-                          ),
-                        ),
+                        left: _cubeLeft(size),
+                        top: cubeTop,
+                        child: Player(size: _cubeSize, angle: _rotationAngle),
                       ),
 
-                    // Game over: oscurece el escenario y muestra el cartel
-                    if (widget.gameState == GameState.gameOver)
-                      Positioned.fill(
-                        child: Container(
-                          color: AppColors.ink.withValues(alpha: 0.45),
-                          alignment: Alignment.center,
+                      // Obstáculo: dos pinchos
+                      if (_obstacleX != null)
+                        Positioned(
+                          left: _obstacleX,
+                          top: groundTop - _obstacleSize,
+                          child: const Obstacle(size: _obstacleSize),
+                        ),
+
+                      // Cartel de ayuda / pausa
+                      if (hint != null)
+                        Positioned(
+                          top: 16,
+                          left: 0,
+                          right: 0,
+                          child: Center(child: GameLabel(hint)),
+                        ),
+
+                      // Pop-up flotante de puntos "+10 PTS" para Niños
+                      if (_showScorePop)
+                        const Positioned(
+                          top: 16,
+                          right: 16,
+                          child: GameLabel('+${GameRules.pointsPerObstacle} PTS!', color: AppColors.yellow, fontSize: 15),
+                        ),
+
+                      // Game over: oscurece el escenario y muestra el cartel
+                      if (widget.gameState == GameState.gameOver)
+                        Positioned.fill(
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.pink,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.ink, width: 3),
-                              boxShadow: const [BoxShadow(color: AppColors.ink, offset: Offset(0, 5))],
-                            ),
-                            child: const Text(
+                            color: AppColors.ink.withValues(alpha: 0.45),
+                            alignment: Alignment.center,
+                            child: const GameLabel(
                               '¡GAME OVER!',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 26),
+                              color: AppColors.pink,
+                              textColor: Colors.white,
+                              fontSize: 26,
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -452,33 +410,4 @@ class _GroundPainter extends CustomPainter {
   @override
   bool shouldRepaint(_GroundPainter oldDelegate) =>
       oldDelegate.scroll != scroll || oldDelegate.color != color;
-}
-
-// Dos pinchos azul marino con contorno blanco
-class _SpikesPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fill = Paint()..color = AppColors.ink;
-    final stroke = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeJoin = StrokeJoin.round;
-    final half = size.width / 2;
-    final top = size.height * 0.15; // Puntas cerca del borde de la hitbox
-
-    for (var i = 0; i < 2; i++) {
-      final left = i * half;
-      final path = Path()
-        ..moveTo(left, size.height)
-        ..lineTo(left + half / 2, top)
-        ..lineTo(left + half, size.height)
-        ..close();
-      canvas.drawPath(path, fill);
-      canvas.drawPath(path, stroke);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_SpikesPainter oldDelegate) => false;
 }

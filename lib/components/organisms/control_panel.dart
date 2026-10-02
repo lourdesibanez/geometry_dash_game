@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../models/game_state.dart';
 import '../atoms/button.dart';
-
-enum GameState { idle, playing, paused, gameOver }
 
 class ControlPanel extends StatelessWidget {
   final GameState gameState;
