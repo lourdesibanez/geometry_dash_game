@@ -41,7 +41,8 @@ class Header extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Expanded(
+                  child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(6),
@@ -53,11 +54,15 @@ class Header extends StatelessWidget {
                       child: const Icon(Icons.sports_esports, color: Colors.black, size: 22),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      playerState.username.toUpperCase(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
+                    Flexible(
+                      child: Text(
+                        playerState.username.toUpperCase(),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -66,6 +71,7 @@ class Header extends StatelessWidget {
                       backgroundColor: isPro ? AppColors.accountPro : AppColors.accountBasic,
                     ),
                   ],
+                  ),
                 ),
                 IconButton(
                   icon: Icon(
