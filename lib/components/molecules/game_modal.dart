@@ -7,43 +7,43 @@ import '../atoms/info_box.dart';
 // Marco común de los modales (tienda, publicidad, revivir):
 // tarjeta de color con contorno azul marino, título amarillo, contenido y botones.
 class GameModal extends StatelessWidget {
-  final String title;
+  final String titulo;
   final Color color;
-  final Color titleColor;
-  final Widget? topRight;      // Ej: cuenta regresiva o botón de cerrar
-  final Widget child;
-  final List<Widget> actions;  // Se reparten a lo ancho
-  final bool canDismiss;       // false: no se cierra con atrás ni tocando afuera
+  final Color colorTitulo;
+  final Widget? esquinaDerecha; // Ej: cuenta regresiva o botón de cerrar
+  final Widget contenido;
+  final List<Widget> acciones;  // Se reparten a lo ancho
+  final bool cerrable;          // false: no se cierra con atrás ni tocando afuera
 
   const GameModal({
     super.key,
-    required this.title,
+    required this.titulo,
     required this.color,
-    required this.child,
-    this.titleColor = AppColors.yellow,
-    this.topRight,
-    this.actions = const [],
-    this.canDismiss = true,
+    required this.contenido,
+    this.colorTitulo = AppColors.amarillo,
+    this.esquinaDerecha,
+    this.acciones = const [],
+    this.cerrable = true,
   });
 
   // Todos los modales aparecen en el centro con el mismo comportamiento
-  static Future<T?> show<T>(
+  static Future<T?> mostrar<T>(
     BuildContext context, {
-    required WidgetBuilder builder,
-    bool canDismiss = true,
+    required WidgetBuilder constructor,
+    bool cerrable = true,
   }) {
     return showDialog<T>(
       context: context,
-      barrierDismissible: canDismiss,
-      barrierColor: AppColors.ink.withValues(alpha: 0.45), // Oscurece el fondo
-      builder: builder,
+      barrierDismissible: cerrable,
+      barrierColor: AppColors.tinta.withValues(alpha: 0.45), // Oscurece el fondo
+      builder: constructor,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: canDismiss,
+      canPop: cerrable,
       // Desenfoca todo lo que queda detrás del modal
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
@@ -55,8 +55,8 @@ class GameModal extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.ink, width: 3),
-            boxShadow: const [BoxShadow(color: AppColors.ink, offset: Offset(0, 6))],
+            border: Border.all(color: AppColors.tinta, width: 3),
+            boxShadow: const [BoxShadow(color: AppColors.tinta, offset: Offset(0, 6))],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -65,29 +65,29 @@ class GameModal extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      title.toUpperCase(),
+                      titulo.toUpperCase(),
                       style: TextStyle(
-                        color: titleColor,
+                        color: colorTitulo,
                         fontWeight: FontWeight.w900,
                         fontSize: 22,
                         letterSpacing: 1,
-                        shadows: const [Shadow(color: AppColors.ink, offset: Offset(2, 2))],
+                        shadows: const [Shadow(color: AppColors.tinta, offset: Offset(2, 2))],
                       ),
                     ),
                   ),
-                  ?topRight,
+                  ?esquinaDerecha,
                 ],
               ),
               const SizedBox(height: 12),
               // Flexible + scroll: si el contenido no entra en pantallas chicas, se desplaza
-              Flexible(child: SingleChildScrollView(child: child)),
-              if (actions.isNotEmpty) ...[
+              Flexible(child: SingleChildScrollView(child: contenido)),
+              if (acciones.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 Row(
                   children: [
-                    for (var i = 0; i < actions.length; i++) ...[
+                    for (var i = 0; i < acciones.length; i++) ...[
                       if (i > 0) const SizedBox(width: 10),
-                      Expanded(child: actions[i]),
+                      Expanded(child: acciones[i]),
                     ],
                   ],
                 ),
@@ -101,34 +101,34 @@ class GameModal extends StatelessWidget {
   }
 
   // Pregunta de confirmación con NO / SÍ. Devuelve true solo si tocan SÍ
-  static Future<bool> confirm(
+  static Future<bool> confirmar(
     BuildContext context, {
-    required String title,
-    required String message,
-    Color color = AppColors.orange,
+    required String titulo,
+    required String mensaje,
+    Color color = AppColors.naranja,
   }) async {
-    final result = await show<bool>(
+    final resultado = await mostrar<bool>(
       context,
-      builder: (dialogContext) => GameModal(
-        title: title,
+      constructor: (contextoDialogo) => GameModal(
+        titulo: titulo,
         color: color,
-        titleColor: Colors.white,
-        actions: [
+        colorTitulo: Colors.white,
+        acciones: [
           Button(
-            label: 'No',
-            onPress: () => Navigator.pop(dialogContext, false),
-            backgroundColor: AppColors.cream,
-            textColor: AppColors.ink,
+            etiqueta: 'No',
+            alPresionar: () => Navigator.pop(contextoDialogo, false),
+            colorFondo: AppColors.crema,
+            colorTexto: AppColors.tinta,
           ),
           Button(
-            label: 'Sí',
-            onPress: () => Navigator.pop(dialogContext, true),
-            backgroundColor: AppColors.pink,
+            etiqueta: 'Sí',
+            alPresionar: () => Navigator.pop(contextoDialogo, true),
+            colorFondo: AppColors.rosa,
           ),
         ],
-        child: InfoBox(message),
+        contenido: InfoBox(mensaje),
       ),
     );
-    return result ?? false; // Tocar afuera o "atrás" cuenta como NO
+    return resultado ?? false; // Tocar afuera o "atrás" cuenta como NO
   }
 }

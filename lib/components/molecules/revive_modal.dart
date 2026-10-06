@@ -7,63 +7,63 @@ import 'game_modal.dart';
 enum ReviveChoice { revive, shop, giveUp }
 
 class ReviveModal extends StatelessWidget {
-  final int score;
-  final int diamonds;
-  final int cost;
+  final int puntaje;
+  final int diamantes;
+  final int costo;
 
-  const ReviveModal({super.key, required this.score, required this.diamonds, required this.cost});
+  const ReviveModal({super.key, required this.puntaje, required this.diamantes, required this.costo});
 
   // Devuelve lo que eligió el jugador
-  static Future<ReviveChoice> show(
+  static Future<ReviveChoice> mostrar(
     BuildContext context, {
-    required int score,
-    required int diamonds,
-    required int cost,
+    required int puntaje,
+    required int diamantes,
+    required int costo,
   }) async {
-    final choice = await GameModal.show<ReviveChoice>(
+    final eleccion = await GameModal.mostrar<ReviveChoice>(
       context,
-      canDismiss: false, // Hay que elegir sí o sí
-      builder: (_) => ReviveModal(score: score, diamonds: diamonds, cost: cost),
+      cerrable: false, // Hay que elegir sí o sí
+      constructor: (_) => ReviveModal(puntaje: puntaje, diamantes: diamantes, costo: costo),
     );
-    return choice ?? ReviveChoice.giveUp;
+    return eleccion ?? ReviveChoice.giveUp;
   }
 
   @override
   Widget build(BuildContext context) {
-    final canAfford = diamonds >= cost;
+    final alcanza = diamantes >= costo;
 
     return GameModal(
-      title: '¡Chocaste!',
-      color: AppColors.yellow,
-      titleColor: Colors.white,
-      canDismiss: false,
-      actions: [
+      titulo: '¡Chocaste!',
+      color: AppColors.amarillo,
+      colorTitulo: Colors.white,
+      cerrable: false,
+      acciones: [
         Button(
-          label: 'Terminar',
-          onPress: () => Navigator.pop(context, ReviveChoice.giveUp),
-          backgroundColor: AppColors.cream,
-          textColor: AppColors.ink,
+          etiqueta: 'Terminar',
+          alPresionar: () => Navigator.pop(context, ReviveChoice.giveUp),
+          colorFondo: AppColors.crema,
+          colorTexto: AppColors.tinta,
         ),
         Button(
           // Texto corto: así los dos botones tienen letra del mismo tamaño (el costo está arriba)
-          label: canAfford ? 'Seguir' : 'Tienda',
-          icon: canAfford ? null : Icons.diamond_rounded,
-          onPress: () => Navigator.pop(context, canAfford ? ReviveChoice.revive : ReviveChoice.shop),
-          backgroundColor: AppColors.pink,
+          etiqueta: alcanza ? 'Seguir' : 'Tienda',
+          icono: alcanza ? null : Icons.diamond_rounded,
+          alPresionar: () => Navigator.pop(context, alcanza ? ReviveChoice.revive : ReviveChoice.shop),
+          colorFondo: AppColors.rosa,
         ),
       ],
-      child: Column(
+      contenido: Column(
         children: [
           Text(
-            'Hiciste $score puntos · Tenés $diamonds 💎',
+            'Hiciste $puntaje puntos · Tenés $diamantes 💎',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 14),
+            style: const TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w800, fontSize: 14),
           ),
           const SizedBox(height: 10),
           InfoBox(
-            canAfford
-                ? '¿Usás $cost 💎 para seguir desde donde chocaste?'
-                : 'Necesitás $cost 💎 para seguir. ¡Conseguilos en la tienda!',
+            alcanza
+                ? '¿Usás $costo 💎 para seguir desde donde chocaste?'
+                : 'Necesitás $costo 💎 para seguir. ¡Conseguilos en la tienda!',
           ),
         ],
       ),

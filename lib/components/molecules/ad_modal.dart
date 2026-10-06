@@ -8,16 +8,16 @@ import 'game_modal.dart';
 
 // Publicidad simulada: se puede cerrar recién cuando termina la cuenta regresiva
 class AdModal extends StatefulWidget {
-  final VoidCallback onClose;
-  final VoidCallback? onRemoveAds; // "Cambiar a PRO": lleva a la tienda para pasarse a PRO
+  final VoidCallback alCerrar;
+  final VoidCallback? alQuitarAnuncios; // "Cambiar a PRO": lleva a la tienda para pasarse a PRO
 
-  const AdModal({super.key, required this.onClose, this.onRemoveAds});
+  const AdModal({super.key, required this.alCerrar, this.alQuitarAnuncios});
 
-  static void show(BuildContext context, VoidCallback onClose, {VoidCallback? onRemoveAds}) {
-    GameModal.show(
+  static void mostrar(BuildContext context, VoidCallback alCerrar, {VoidCallback? alQuitarAnuncios}) {
+    GameModal.mostrar(
       context,
-      canDismiss: false,
-      builder: (_) => AdModal(onClose: onClose, onRemoveAds: onRemoveAds),
+      cerrable: false,
+      constructor: (_) => AdModal(alCerrar: alCerrar, alQuitarAnuncios: alQuitarAnuncios),
     );
   }
 
@@ -26,71 +26,71 @@ class AdModal extends StatefulWidget {
 }
 
 class _AdModalState extends State<AdModal> {
-  static const int _adSeconds = 5;
-  int _remaining = _adSeconds;
-  Timer? _timer;
+  static const int _segundosAnuncio = 5;
+  int _restantes = _segundosAnuncio;
+  Timer? _temporizador;
 
-  bool get _canClose => _remaining == 0;
+  bool get _puedeCerrar => _restantes == 0;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remaining <= 1) timer.cancel();
-      setState(() => _remaining--);
+    _temporizador = Timer.periodic(const Duration(seconds: 1), (temporizador) {
+      if (_restantes <= 1) temporizador.cancel();
+      setState(() => _restantes--);
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _temporizador?.cancel();
     super.dispose();
   }
 
-  void _close() {
-    if (!_canClose) return;
+  void _cerrar() {
+    if (!_puedeCerrar) return;
     Navigator.pop(context);
-    widget.onClose();
+    widget.alCerrar();
   }
 
-  void _removeAds() {
+  void _quitarAnuncios() {
     Navigator.pop(context);
-    widget.onRemoveAds?.call();
+    widget.alQuitarAnuncios?.call();
   }
 
   @override
   Widget build(BuildContext context) {
     return GameModal(
-      title: 'Publicidad',
-      color: AppColors.pink,
-      canDismiss: false, // El botón atrás no saltea el anuncio
-      topRight: CustomBadge(
-        label: '0:${_remaining.toString().padLeft(2, '0')}',
-        backgroundColor: AppColors.cream,
-        fontSize: 13,
+      titulo: 'Publicidad',
+      color: AppColors.rosa,
+      cerrable: false, // El botón atrás no saltea el anuncio
+      esquinaDerecha: CustomBadge(
+        etiqueta: '0:${_restantes.toString().padLeft(2, '0')}',
+        colorFondo: AppColors.crema,
+        tamanoLetra: 13,
       ),
-      actions: [
+      acciones: [
         Button(
-          label: 'PRO',
-          icon: Icons.workspace_premium_rounded,
-          onPress: _removeAds,
-          backgroundColor: AppColors.teal,
+          etiqueta: 'PRO',
+          icono: Icons.workspace_premium_rounded,
+          alPresionar: _quitarAnuncios,
+          colorFondo: AppColors.turquesa,
         ),
         // Se habilita cuando termina la cuenta regresiva (el tiempo se ve arriba a la derecha).
         // Texto fijo y corto: así no cambia de tamaño al habilitarse
         Opacity(
-          opacity: _canClose ? 1.0 : 0.5,
+          opacity: _puedeCerrar ? 1.0 : 0.5,
           child: Button(
-            label: 'Cerrar',
-            icon: Icons.close_rounded,
-            onPress: _close,
-            backgroundColor: AppColors.orange,
+            etiqueta: 'Cerrar',
+            icono: Icons.close_rounded,
+            alPresionar: _cerrar,
+            colorFondo: AppColors.naranja,
           ),
         ),
       ],
-      child: Column(
+      contenido: Column(
         children: [
-          _buildAdVideo(),
+          _construirVideoAnuncio(),
           const SizedBox(height: 12),
           const InfoBox('Después del anuncio arranca tu partida.\n¿Sin anuncios? ¡Pasate a PRO!'),
         ],
@@ -99,13 +99,13 @@ class _AdModalState extends State<AdModal> {
   }
 
   // "Video" del anuncio
-  Widget _buildAdVideo() {
+  Widget _construirVideoAnuncio() {
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: AppColors.purple,
+        color: AppColors.violeta,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.ink, width: 3),
+        border: Border.all(color: AppColors.tinta, width: 3),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
@@ -119,17 +119,17 @@ class _AdModalState extends State<AdModal> {
                 width: 140,
                 height: 140,
                 decoration: BoxDecoration(
-                  color: AppColors.yellow,
+                  color: AppColors.amarillo,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.ink, width: 3),
+                  border: Border.all(color: AppColors.tinta, width: 3),
                 ),
               ),
             ),
             // Estrellitas
-            for (final star in const [Offset(28, 38), Offset(70, 20), Offset(40, 120), Offset(220, 130)])
+            for (final estrella in const [Offset(28, 38), Offset(70, 20), Offset(40, 120), Offset(220, 130)])
               Positioned(
-                left: star.dx,
-                top: star.dy,
+                left: estrella.dx,
+                top: estrella.dy,
                 child: Container(
                   width: 6,
                   height: 6,
@@ -145,7 +145,7 @@ class _AdModalState extends State<AdModal> {
                     Icons.rocket_launch_rounded,
                     color: Colors.white,
                     size: 54,
-                    shadows: [Shadow(color: AppColors.ink, offset: Offset(2, 3))],
+                    shadows: [Shadow(color: AppColors.tinta, offset: Offset(2, 3))],
                   ),
                   SizedBox(height: 8),
                   Text(
@@ -155,12 +155,12 @@ class _AdModalState extends State<AdModal> {
                       fontWeight: FontWeight.w900,
                       fontSize: 26,
                       letterSpacing: 1,
-                      shadows: [Shadow(color: AppColors.ink, offset: Offset(2, 3))],
+                      shadows: [Shadow(color: AppColors.tinta, offset: Offset(2, 3))],
                     ),
                   ),
                   Text(
                     '¡El cereal que despega tu mañana!',
-                    style: TextStyle(color: AppColors.yellow, fontWeight: FontWeight.w800, fontSize: 13),
+                    style: TextStyle(color: AppColors.amarillo, fontWeight: FontWeight.w800, fontSize: 13),
                   ),
                 ],
               ),
@@ -173,19 +173,19 @@ class _AdModalState extends State<AdModal> {
               child: Container(
                 height: 12,
                 decoration: BoxDecoration(
-                  color: AppColors.ink.withValues(alpha: 0.4),
+                  color: AppColors.tinta.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.ink, width: 2),
+                  border: Border.all(color: AppColors.tinta, width: 2),
                 ),
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: 1),
-                  duration: const Duration(seconds: _adSeconds),
-                  builder: (context, value, _) => FractionallySizedBox(
+                  duration: const Duration(seconds: _segundosAnuncio),
+                  builder: (context, valor, _) => FractionallySizedBox(
                     alignment: Alignment.centerLeft,
-                    widthFactor: value,
+                    widthFactor: valor,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.yellow,
+                        color: AppColors.amarillo,
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),

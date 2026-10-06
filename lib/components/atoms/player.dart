@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 
-// Personaje: cubo amarillo con carita. Se usa en el juego y como avatar del header
+// Personaje: cubo amarillo con carita. Se usa como avatar del header
 class Player extends StatelessWidget {
-  final double size;
-  final double angle; // Rotación en radianes (gira mientras salta)
+  final double tamano;
+  final double angulo; // Rotación en radianes
 
-  const Player({super.key, this.size = 44, this.angle = 0});
+  const Player({super.key, this.tamano = 44, this.angulo = 0});
 
   @override
   Widget build(BuildContext context) {
     return Transform.rotate(
-      angle: angle,
+      angle: angulo,
       child: Container(
-        width: size,
-        height: size,
+        width: tamano,
+        height: tamano,
         decoration: BoxDecoration(
-          color: AppColors.yellow,
-          borderRadius: BorderRadius.circular(size * 0.25),
-          border: Border.all(color: AppColors.ink, width: 3),
+          color: AppColors.amarillo,
+          borderRadius: BorderRadius.circular(tamano * 0.25),
+          border: Border.all(color: AppColors.tinta, width: 3),
         ),
-        child: Icon(Icons.sentiment_very_satisfied, color: AppColors.ink, size: size * 0.68),
+        child: Icon(Icons.sentiment_very_satisfied, color: AppColors.tinta, size: tamano * 0.68),
       ),
     );
   }

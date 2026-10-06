@@ -13,153 +13,153 @@ import '../components/molecules/game_modal.dart';
 // Pantalla principal: arma la interfaz y muestra los modales.
 // Las reglas del juego viven en GameController; acá solo se le dice qué hacer.
 class GameScreen extends StatefulWidget {
-  final GameController controller;
+  final GameController controlador;
 
-  const GameScreen({super.key, required this.controller});
+  const GameScreen({super.key, required this.controlador});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
 
 class _GameScreenState extends State<GameScreen> {
-  GameController get _game => widget.controller;
+  GameController get _juego => widget.controlador;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _cargar();
   }
 
-  Future<void> _load() async {
-    final gift = await _game.load();
-    if (!mounted || gift == 0) return;
+  Future<void> _cargar() async {
+    final regalo = await _juego.cargar();
+    if (!mounted || regalo == 0) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.ink,
+        backgroundColor: AppColors.tinta,
         content: Text(
-          '¡Recibiste $gift 💎 de tu cuenta PRO!',
+          '¡Recibiste $regalo 💎 de tu cuenta PRO!',
           style: const TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
     );
   }
 
-  Future<void> _handleRestartWithAd() async {
+  Future<void> _reiniciarConAnuncio() async {
     // Pausamos para que el juego no siga corriendo detrás de los modales
-    _game.pause();
+    _juego.pausar();
 
-    final confirmed = await GameModal.confirm(
+    final confirmado = await GameModal.confirmar(
       context,
-      title: '¿Reiniciar?',
-      message: 'Vas a perder los ${_game.player.score} puntos de esta partida '
+      titulo: '¿Reiniciar?',
+      mensaje: 'Vas a perder los ${_juego.jugador.puntaje} puntos de esta partida '
           'y volver al inicio.',
     );
     // NO: queda en pausa para que siga cuando toque REANUDAR
-    if (!confirmed || !mounted) return;
+    if (!confirmado || !mounted) return;
 
     // PRO no ve publicidad; igual vuelve a la pantalla de inicio (INICIAR PARTIDA)
-    if (_game.isPro) {
-      _game.backToStart();
+    if (_juego.esPro) {
+      _juego.volverAlInicio();
       return;
     }
-    AdModal.show(
+    AdModal.mostrar(
       context,
       // Al cerrar el anuncio vuelve a la pantalla de inicio (INICIAR PARTIDA)
-      _game.backToStart,
+      _juego.volverAlInicio,
       // "PRO": abre la tienda y, al cerrarla, vuelve a la pantalla de inicio
-      onRemoveAds: () async {
-        await _openShop();
-        if (mounted) _game.backToStart();
+      alQuitarAnuncios: () async {
+        await _abrirTienda();
+        if (mounted) _juego.volverAlInicio();
       },
     );
   }
 
-  void _handlePlayerHit() {
-    if (_game.hit()) _offerRevive();
+  void _alChocar() {
+    if (_juego.chocar()) _ofrecerRevivir();
   }
 
-  Future<void> _offerRevive() async {
-    final choice = await ReviveModal.show(
+  Future<void> _ofrecerRevivir() async {
+    final eleccion = await ReviveModal.mostrar(
       context,
-      score: _game.player.score,
-      diamonds: _game.player.diamonds,
-      cost: _game.reviveCost,
+      puntaje: _juego.jugador.puntaje,
+      diamantes: _juego.jugador.diamantes,
+      costo: _juego.costoRevivir,
     );
     if (!mounted) return;
 
-    switch (choice) {
+    switch (eleccion) {
       case ReviveChoice.revive:
-        _game.revive();
+        _juego.revivir();
       case ReviveChoice.shop:
-        await _openShop();
-        if (mounted) _offerRevive(); // Al volver de la tienda, se vuelve a ofrecer
+        await _abrirTienda();
+        if (mounted) _ofrecerRevivir(); // Al volver de la tienda, se vuelve a ofrecer
       case ReviveChoice.giveUp:
-        _game.gameOver();
+        _juego.terminarPartida();
     }
   }
 
-  Future<void> _openShop() {
-    return ShopModal.show(
+  Future<void> _abrirTienda() {
+    return ShopModal.mostrar(
       context,
-      onBuyDiamonds: _game.buyDiamonds,
-      onBuyPro: _game.buyPro,
-      isPro: _game.isPro,
-      diamonds: _game.player.diamonds,
+      alComprarDiamantes: _juego.comprarDiamantes,
+      alComprarPro: _juego.comprarPro,
+      esPro: _juego.esPro,
+      diamantes: _juego.jugador.diamantes,
     );
   }
 
   // Desde el header: si se está jugando, pausa para que el juego no siga detrás del modal
-  void _openShopFromHeader() {
-    _game.pauseIfPlaying();
-    _openShop();
+  void _abrirTiendaDesdeHeader() {
+    _juego.pausarSiEstaJugando();
+    _abrirTienda();
   }
 
   // Píldora de cuenta: PRO ve su suscripción (y puede cancelarla); BASIC va a la tienda
-  void _handleAccountTap() {
-    if (!_game.isPro) {
-      _openShopFromHeader();
+  void _alTocarCuenta() {
+    if (!_juego.esPro) {
+      _abrirTiendaDesdeHeader();
       return;
     }
-    _game.pauseIfPlaying();
-    AccountModal.show(
+    _juego.pausarSiEstaJugando();
+    AccountModal.mostrar(
       context,
-      nextGiftAt: _game.nextProGiftAt,
-      onCancelPro: _game.cancelPro,
+      proximoRegalo: _juego.proximoRegaloPro,
+      alCancelarPro: _juego.cancelarPro,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Se redibuja cada vez que el controller llama a notifyListeners()
+    // Se redibuja cada vez que el controlador llama a notifyListeners()
     return ListenableBuilder(
-      listenable: _game,
+      listenable: _juego,
       builder: (context, _) => Scaffold(
         body: Column(
           children: [
             Header(
-              playerState: _game.player,
-              onOpenShop: _openShopFromHeader,
-              onAccountTap: _handleAccountTap,
-              onToggleTheme: _game.toggleTheme,
+              estadoJugador: _juego.jugador,
+              alAbrirTienda: _abrirTiendaDesdeHeader,
+              alTocarCuenta: _alTocarCuenta,
+              alCambiarTema: _juego.alternarTema,
             ),
             Expanded(
               child: GameCanvas(
-                gameState: _game.gameState,
-                round: _game.round,
-                reviveCount: _game.reviveCount,
-                onPlayerHit: _handlePlayerHit,
-                onScoreTick: _game.addScore,
-                onDiamondCollected: _game.collectDiamond,
+                estadoJuego: _juego.estadoJuego,
+                ronda: _juego.ronda,
+                vecesRevivido: _juego.vecesRevivido,
+                alChocar: _alChocar,
+                alSumarPuntos: _juego.sumarPuntos,
+                alAgarrarDiamante: _juego.agarrarDiamante,
               ),
             ),
             ControlPanel(
-              gameState: _game.gameState,
-              onStart: _game.startGame,
-              onPause: _game.pause,
-              onResume: _game.resume,
-              onRestart: _handleRestartWithAd,
-              onNewGame: _game.startGame,
+              estadoJuego: _juego.estadoJuego,
+              alIniciar: _juego.iniciarPartida,
+              alPausar: _juego.pausar,
+              alReanudar: _juego.reanudar,
+              alReiniciar: _reiniciarConAnuncio,
+              alNuevaPartida: _juego.iniciarPartida,
             ),
           ],
         ),

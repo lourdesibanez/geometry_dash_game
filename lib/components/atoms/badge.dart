@@ -3,21 +3,21 @@ import '../../core/theme.dart';
 
 // Píldora con contorno (ej: "CUENTA BASIC", saldo, cuenta regresiva, "POPULAR")
 class CustomBadge extends StatelessWidget {
-  final String label;
-  final Color backgroundColor;
-  final Color textColor;
-  final IconData? icon;
-  final Color? iconColor; // Por defecto, el mismo color del texto
-  final double fontSize;
+  final String etiqueta;
+  final Color colorFondo;
+  final Color colorTexto;
+  final IconData? icono;
+  final Color? colorIcono; // Por defecto, el mismo color del texto
+  final double tamanoLetra;
 
   const CustomBadge({
     super.key,
-    required this.label,
-    required this.backgroundColor,
-    this.textColor = AppColors.ink,
-    this.icon,
-    this.iconColor,
-    this.fontSize = 11,
+    required this.etiqueta,
+    required this.colorFondo,
+    this.colorTexto = AppColors.tinta,
+    this.icono,
+    this.colorIcono,
+    this.tamanoLetra = 11,
   });
 
   @override
@@ -25,22 +25,22 @@ class CustomBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: colorFondo,
         borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: AppColors.ink, width: 2),
+        border: Border.all(color: AppColors.tinta, width: 2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: fontSize + 2, color: iconColor ?? textColor),
+          if (icono != null) ...[
+            Icon(icono, size: tamanoLetra + 2, color: colorIcono ?? colorTexto),
             const SizedBox(width: 4.0),
           ],
           Text(
-            label,
+            etiqueta,
             style: TextStyle(
-              color: textColor,
-              fontSize: fontSize,
+              color: colorTexto,
+              fontSize: tamanoLetra,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.8,
             ),

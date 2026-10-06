@@ -17,12 +17,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Un único controller para toda la app: lo crea y lo libera este widget
-  final GameController _controller = GameController();
+  // Un único controller para toda la app: las reglas del juego
+  final GameController _controlador = GameController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controlador.dispose();
     super.dispose();
   }
 
@@ -30,14 +30,14 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     // Se redibuja cuando el controller avisa: así el tema siempre sigue a lo guardado
     return ListenableBuilder(
-      listenable: _controller,
+      listenable: _controlador,
       builder: (context, _) => MaterialApp(
         title: 'Geometry Dash Game',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: _controller.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-        home: GameScreen(controller: _controller),
+        theme: AppTheme.temaClaro,
+        darkTheme: AppTheme.temaOscuro,
+        themeMode: _controlador.modoOscuro ? ThemeMode.dark : ThemeMode.light,
+        home: GameScreen(controlador: _controlador),
       ),
     );
   }

@@ -7,23 +7,23 @@ import '../atoms/player.dart';
 import '../molecules/counter_item.dart';
 
 class Header extends StatelessWidget {
-  final PlayerState playerState;
-  final VoidCallback onToggleTheme;
-  final VoidCallback onOpenShop;
-  final VoidCallback onAccountTap;
+  final PlayerState estadoJugador;
+  final VoidCallback alCambiarTema;
+  final VoidCallback alAbrirTienda;
+  final VoidCallback alTocarCuenta;
 
   const Header({
     super.key,
-    required this.playerState,
-    required this.onToggleTheme,
-    required this.onOpenShop,
-    required this.onAccountTap,
+    required this.estadoJugador,
+    required this.alCambiarTema,
+    required this.alAbrirTienda,
+    required this.alTocarCuenta,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isPro = playerState.isPro;
-    final colors = Theme.of(context).colorScheme;
+    final esPro = estadoJugador.esPro;
+    final colores = Theme.of(context).colorScheme;
 
     return SafeArea(
       bottom: false,
@@ -31,11 +31,11 @@ class Header extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
-          color: colors.surface,
+          color: colores.surface,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.ink, width: 3),
+          border: Border.all(color: AppColors.tinta, width: 3),
           boxShadow: const [
-            BoxShadow(color: AppColors.ink, offset: Offset(0, 5), blurRadius: 0),
+            BoxShadow(color: AppColors.tinta, offset: Offset(0, 5), blurRadius: 0),
           ],
         ),
         child: Column(
@@ -44,20 +44,20 @@ class Header extends StatelessWidget {
             Row(
               children: [
                 // Avatar: el mismo cubo del juego
-                const Player(size: 46),
+                const Player(tamano: 46),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        playerState.username,
+                        estadoJugador.nombreUsuario,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 18,
-                          color: colors.onSurface,
+                          color: colores.onSurface,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -71,18 +71,18 @@ class Header extends StatelessWidget {
                             button: true,
                             label: 'Cuenta',
                             child: GestureDetector(
-                              onTap: onAccountTap,
+                              onTap: alTocarCuenta,
                               child: CustomBadge(
-                                label: isPro ? 'PRO' : 'BASIC',
-                                backgroundColor: isPro ? AppColors.accountPro : AppColors.accountBasic,
-                                icon: isPro ? Icons.workspace_premium : null,
+                                etiqueta: esPro ? 'PRO' : 'BASIC',
+                                colorFondo: esPro ? AppColors.cuentaPro : AppColors.cuentaBasic,
+                                icono: esPro ? Icons.workspace_premium : null,
                               ),
                             ),
                           ),
                           CustomBadge(
-                            label: 'RÉCORD ${playerState.highScore}',
-                            backgroundColor: AppColors.yellow,
-                            icon: Icons.emoji_events_rounded,
+                            etiqueta: 'RÉCORD ${estadoJugador.record}',
+                            colorFondo: AppColors.amarillo,
+                            icono: Icons.emoji_events_rounded,
                           ),
                         ],
                       ),
@@ -91,12 +91,12 @@ class Header extends StatelessWidget {
                 ),
                 // Botón de tema claro/oscuro
                 Button(
-                  icon: playerState.isDarkMode ? Icons.wb_sunny_rounded : Icons.nightlight_round,
-                  onPress: onToggleTheme,
-                  backgroundColor: AppColors.purple,
-                  textColor: AppColors.yellow,
-                  radius: 999,
-                  tooltip: playerState.isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro',
+                  icono: estadoJugador.modoOscuro ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+                  alPresionar: alCambiarTema,
+                  colorFondo: AppColors.violeta,
+                  colorTexto: AppColors.amarillo,
+                  radio: 999,
+                  descripcion: estadoJugador.modoOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro',
                 ),
               ],
             ),
@@ -106,10 +106,10 @@ class Header extends StatelessWidget {
               children: [
                 Expanded(
                   child: CounterItem(
-                    icon: Icons.star_rounded,
-                    label: 'Puntos',
-                    value: '${playerState.score}',
-                    badgeColor: AppColors.yellow,
+                    icono: Icons.star_rounded,
+                    etiqueta: 'Puntos',
+                    valor: '${estadoJugador.puntaje}',
+                    colorIcono: AppColors.amarillo,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -119,12 +119,12 @@ class Header extends StatelessWidget {
                     button: true,
                     hint: 'Abre la tienda',
                     child: GestureDetector(
-                      onTap: onOpenShop,
+                      onTap: alAbrirTienda,
                       child: CounterItem(
-                        icon: Icons.diamond_rounded,
-                        label: 'Diamantes',
-                        value: '${playerState.diamonds}',
-                        badgeColor: AppColors.diamond,
+                        icono: Icons.diamond_rounded,
+                        etiqueta: 'Diamantes',
+                        valor: '${estadoJugador.diamantes}',
+                        colorIcono: AppColors.diamante,
                       ),
                     ),
                   ),

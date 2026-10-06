@@ -7,10 +7,10 @@ import '../game_config.dart';
 // Diamante para agarrar saltando (mismo ícono que el header y la tienda).
 // La hitbox no se achica: para agarrarlo alcanza con rozarlo.
 class DiamondComponent extends PositionComponent {
-  DiamondComponent() : super(size: Vector2.all(GameConfig.diamondSize));
+  DiamondComponent() : super(size: Vector2.all(GameConfig.tamanoDiamante));
 
-  static final _shadow = _diamondPainter(AppColors.ink);
-  static final _icon = _diamondPainter(AppColors.diamond);
+  static final _sombra = _pintorDiamante(AppColors.tinta);
+  static final _icono = _pintorDiamante(AppColors.diamante);
 
   @override
   Future<void> onLoad() async {
@@ -19,20 +19,20 @@ class DiamondComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    _shadow.paint(canvas, const Offset(1.5, 2));
-    _icon.paint(canvas, Offset.zero);
+    _sombra.paint(canvas, const Offset(1.5, 2));
+    _icono.paint(canvas, Offset.zero);
   }
 }
 
-TextPainter _diamondPainter(Color color) {
-  const icon = Icons.diamond_rounded;
+TextPainter _pintorDiamante(Color color) {
+  const icono = Icons.diamond_rounded;
   return TextPainter(
     text: TextSpan(
-      text: String.fromCharCode(icon.codePoint),
+      text: String.fromCharCode(icono.codePoint),
       style: TextStyle(
-        fontFamily: icon.fontFamily,
-        package: icon.fontPackage,
-        fontSize: GameConfig.diamondSize,
+        fontFamily: icono.fontFamily,
+        package: icono.fontPackage,
+        fontSize: GameConfig.tamanoDiamante,
         color: color,
       ),
     ),

@@ -10,31 +10,31 @@ import 'components/sky_component.dart';
 import 'game_config.dart';
 
 // Juego hecho con Flame. La UI (botonera, header, modales) es Flutter y lo controla
-// desde afuera con [running], [reset] y [clearObstacle]; el juego avisa lo que pasa
-// por callbacks.
+// desde afuera con [corriendo], [reiniciar] y [quitarObstaculo]; el juego avisa lo que
+// pasa por callbacks.
 class DashGame extends FlameGame with TapCallbacks, HasCollisionDetection {
-  final VoidCallback onPlayerHit;
-  final VoidCallback onScoreTick;
-  final VoidCallback onDiamondCollected;
-  final VoidCallback onJump;
+  final VoidCallback alChocar;
+  final VoidCallback alSumarPuntos;
+  final VoidCallback alAgarrarDiamante;
+  final VoidCallback alSaltar;
 
   DashGame({
-    required this.onPlayerHit,
-    required this.onScoreTick,
-    required this.onDiamondCollected,
-    required this.onJump,
+    required this.alChocar,
+    required this.alSumarPuntos,
+    required this.alAgarrarDiamante,
+    required this.alSaltar,
   });
 
   // false = física congelada (inicio, pausa, game over). El motor sigue dibujando,
   // así los cambios de tema o de partida se ven aunque el juego no avance.
-  bool running = false;
-  bool isNight = false; // Cielo de noche en modo oscuro
+  bool corriendo = false;
+  bool esNoche = false; // Cielo de noche en modo oscuro
 
-  final PlayerComponent player = PlayerComponent();
-  final ObstacleComponent obstacle = ObstacleComponent();
-  final GroundComponent ground = GroundComponent();
+  final PlayerComponent jugador = PlayerComponent();
+  final ObstacleComponent obstaculo = ObstacleComponent();
+  final GroundComponent piso = GroundComponent();
 
-  double get groundTop => size.y - GameConfig.groundHeight;
+  double get bordePiso => size.y - GameConfig.alturaPiso;
 
   @override
   Color backgroundColor() => const Color(0x00000000); // El cielo lo dibuja SkyComponent
@@ -42,40 +42,40 @@ class DashGame extends FlameGame with TapCallbacks, HasCollisionDetection {
   @override
   Future<void> onLoad() async {
     // El orden define qué se dibuja encima
-    await addAll([SkyComponent(), ground, obstacle, player]);
+    await addAll([SkyComponent(), piso, obstaculo, jugador]);
   }
 
   @override
   void update(double dt) {
-    super.update(running ? math.min(dt, GameConfig.maxFrameTime) : 0);
+    super.update(corriendo ? math.min(dt, GameConfig.maximoTiempoCuadro) : 0);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
-    if (!running) return;
-    player.jump();
-    onJump();
+    if (!corriendo) return;
+    jugador.saltar();
+    alSaltar();
   }
 
   // Partida nueva: todo vuelve a la posición inicial
-  void reset() {
-    player.reset();
-    obstacle.reset();
-    ground.reset();
+  void reiniciar() {
+    jugador.reiniciar();
+    obstaculo.reiniciar();
+    piso.reiniciar();
   }
 
   // Al revivir: el obstáculo que nos golpeó reaparece en el borde derecho
-  void clearObstacle() => obstacle.respawnAtEdge();
+  void quitarObstaculo() => obstaculo.reaparecerEnBorde();
 
-  void handleHit() {
-    if (!running) return;
-    running = false; // Se congela en el acto, antes de que Flutter cambie de estado
-    onPlayerHit();
+  void manejarChoque() {
+    if (!corriendo) return;
+    corriendo = false; // Se congela en el acto, antes de que Flutter cambie de estado
+    alChocar();
   }
 
-  void collectDiamond(DiamondComponent diamond) {
-    if (!running) return;
-    obstacle.removeDiamond();
-    onDiamondCollected();
+  void agarrarDiamante(DiamondComponent diamante) {
+    if (!corriendo) return;
+    obstaculo.quitarDiamante();
+    alAgarrarDiamante();
   }
 }

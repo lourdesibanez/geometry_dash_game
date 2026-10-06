@@ -7,25 +7,25 @@ import 'game_modal.dart';
 
 // Detalle de la suscripción PRO, con opción de cancelarla (pide confirmación)
 class AccountModal extends StatefulWidget {
-  final DateTime? nextGiftAt;
-  final VoidCallback onCancelPro;
+  final DateTime? proximoRegalo;
+  final VoidCallback alCancelarPro;
 
   const AccountModal({
     super.key,
-    required this.nextGiftAt,
-    required this.onCancelPro,
+    required this.proximoRegalo,
+    required this.alCancelarPro,
   });
 
-  static Future<void> show(
+  static Future<void> mostrar(
     BuildContext context, {
-    required DateTime? nextGiftAt,
-    required VoidCallback onCancelPro,
+    required DateTime? proximoRegalo,
+    required VoidCallback alCancelarPro,
   }) {
-    return GameModal.show(
+    return GameModal.mostrar(
       context,
-      builder: (_) => AccountModal(
-        nextGiftAt: nextGiftAt,
-        onCancelPro: onCancelPro,
+      constructor: (_) => AccountModal(
+        proximoRegalo: proximoRegalo,
+        alCancelarPro: alCancelarPro,
       ),
     );
   }
@@ -35,95 +35,95 @@ class AccountModal extends StatefulWidget {
 }
 
 class _AccountModalState extends State<AccountModal> {
-  bool _confirming = false; // Segundo paso: "¿Seguro?"
+  bool _confirmando = false; // Segundo paso: "¿Seguro?"
 
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+  String _formatearFecha(DateTime fecha) =>
+      '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
-    final nextGift = widget.nextGiftAt;
+    final proximoRegalo = widget.proximoRegalo;
 
     return GameModal(
-      title: _confirming ? '¿Cancelar PRO?' : 'Tu cuenta PRO',
-      color: AppColors.teal,
-      titleColor: Colors.white,
-      topRight: Button(
-        icon: Icons.close_rounded,
-        onPress: () => Navigator.pop(context),
-        backgroundColor: AppColors.cream,
-        textColor: AppColors.ink,
-        radius: 999,
-        tooltip: 'Cerrar',
-        size: 34,
+      titulo: _confirmando ? '¿Cancelar PRO?' : 'Tu cuenta PRO',
+      color: AppColors.turquesa,
+      colorTitulo: Colors.white,
+      esquinaDerecha: Button(
+        icono: Icons.close_rounded,
+        alPresionar: () => Navigator.pop(context),
+        colorFondo: AppColors.crema,
+        colorTexto: AppColors.tinta,
+        radio: 999,
+        descripcion: 'Cerrar',
+        tamano: 34,
       ),
       // Textos cortos: así los botones tienen letra del mismo tamaño
-      actions: _confirming
+      acciones: _confirmando
           ? [
               Button(
-                label: 'No',
-                onPress: () => setState(() => _confirming = false),
-                backgroundColor: AppColors.green,
-                textColor: AppColors.ink,
+                etiqueta: 'No',
+                alPresionar: () => setState(() => _confirmando = false),
+                colorFondo: AppColors.verde,
+                colorTexto: AppColors.tinta,
               ),
               Button(
-                label: 'Sí',
-                onPress: () {
+                etiqueta: 'Sí',
+                alPresionar: () {
                   Navigator.pop(context);
-                  widget.onCancelPro();
+                  widget.alCancelarPro();
                 },
-                backgroundColor: AppColors.pink,
+                colorFondo: AppColors.rosa,
               ),
             ]
           : [
               Button(
-                label: 'Volver',
-                onPress: () => Navigator.pop(context),
-                backgroundColor: AppColors.cream,
-                textColor: AppColors.ink,
+                etiqueta: 'Volver',
+                alPresionar: () => Navigator.pop(context),
+                colorFondo: AppColors.crema,
+                colorTexto: AppColors.tinta,
               ),
             ],
-      child: _confirming
+      contenido: _confirmando
           ? InfoBox(
-              'Vas a volver a ver publicidad, revivir te va a costar ${GameRules.reviveCostBasic} 💎 '
-              'y no vas a recibir más ${GameRules.proMonthlyDiamonds} 💎 por mes.\n'
+              'Vas a volver a ver publicidad, revivir te va a costar ${GameRules.costoRevivirBasic} 💎 '
+              'y no vas a recibir más ${GameRules.diamantesMensualesPro} 💎 por mes.\n'
               'Tus diamantes actuales se quedan.',
             )
-          : InfoBox.custom(
-              child: Column(
+          : InfoBox.personalizado(
+              contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.workspace_premium_rounded, color: AppColors.accountPro, size: 34, shadows: [
-                        Shadow(color: AppColors.ink, offset: Offset(1, 2)),
+                      const Icon(Icons.workspace_premium_rounded, color: AppColors.cuentaPro, size: 34, shadows: [
+                        Shadow(color: AppColors.tinta, offset: Offset(1, 2)),
                       ]),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          nextGift != null
-                              ? 'Próximos ${GameRules.proMonthlyDiamonds} 💎: ${_formatDate(nextGift)}'
+                          proximoRegalo != null
+                              ? 'Próximos ${GameRules.diamantesMensualesPro} 💎: ${_formatearFecha(proximoRegalo)}'
                               : 'Suscripción activa',
-                          style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 14),
+                          style: const TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w900, fontSize: 14),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  for (final benefit in [
+                  for (final beneficio in [
                     'Sin publicidad',
-                    'Revivir a ${GameRules.reviveCostPro} 💎',
-                    '${GameRules.proMonthlyDiamonds} 💎 por mes',
+                    'Revivir a ${GameRules.costoRevivirPro} 💎',
+                    '${GameRules.diamantesMensualesPro} 💎 por mes',
                   ])
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
+                          const Icon(Icons.check_circle_rounded, color: AppColors.verde, size: 20),
                           const SizedBox(width: 6),
                           Text(
-                            benefit,
-                            style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700, fontSize: 14),
+                            beneficio,
+                            style: const TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w700, fontSize: 14),
                           ),
                         ],
                       ),
@@ -134,18 +134,18 @@ class _AccountModalState extends State<AccountModal> {
                     child: Semantics(
                       button: true,
                       child: GestureDetector(
-                        onTap: () => setState(() => _confirming = true),
+                        onTap: () => setState(() => _confirmando = true),
                         child: const Text(
                           'Cancelar suscripción',
                           style: TextStyle(
-                            color: AppColors.inkMuted,
+                            color: AppColors.tintaSuave,
                             fontWeight: FontWeight.w700,
                             fontSize: 13,
                             decoration: TextDecoration.underline,
-                            decorationColor: AppColors.inkMuted,
+                            decorationColor: AppColors.tintaSuave,
                           ),
                         ),
-                    ),
+                      ),
                     ),
                   ),
                 ],

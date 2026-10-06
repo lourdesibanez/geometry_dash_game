@@ -7,51 +7,51 @@ import 'game_modal.dart';
 
 // Paquete de diamantes a la venta
 class _DiamondPack {
-  final int amount;
-  final String price;
-  final String? tag; // Etiqueta destacada (ej: "POPULAR")
-  final double iconSize;
+  final int cantidad;
+  final String precio;
+  final String? etiqueta; // Etiqueta destacada (ej: "POPULAR")
+  final double tamanoIcono;
 
-  const _DiamondPack(this.amount, this.price, {this.tag, required this.iconSize});
+  const _DiamondPack(this.cantidad, this.precio, {this.etiqueta, required this.tamanoIcono});
 }
 
 class ShopModal extends StatelessWidget {
-  final ValueChanged<int> onBuyDiamonds; // Recibe la cantidad comprada
-  final VoidCallback onBuyPro;
-  final bool isPro;
-  final int diamonds;
+  final ValueChanged<int> alComprarDiamantes; // Recibe la cantidad comprada
+  final VoidCallback alComprarPro;
+  final bool esPro;
+  final int diamantes;
 
   // Más diamantes = ícono más grande
-  static const _packs = [
-    _DiamondPack(50, '\$ 0,99', iconSize: 30),
-    _DiamondPack(150, '\$ 2,49', tag: 'POPULAR', iconSize: 34),
-    _DiamondPack(400, '\$ 4,99', iconSize: 38),
-    _DiamondPack(1000, '\$ 9,99', tag: 'MEJOR PRECIO', iconSize: 44),
+  static const _paquetes = [
+    _DiamondPack(50, '\$ 0,99', tamanoIcono: 30),
+    _DiamondPack(150, '\$ 2,49', etiqueta: 'POPULAR', tamanoIcono: 34),
+    _DiamondPack(400, '\$ 4,99', tamanoIcono: 38),
+    _DiamondPack(1000, '\$ 9,99', etiqueta: 'MEJOR PRECIO', tamanoIcono: 44),
   ];
 
   const ShopModal({
     super.key,
-    required this.onBuyDiamonds,
-    required this.onBuyPro,
-    required this.isPro,
-    required this.diamonds,
+    required this.alComprarDiamantes,
+    required this.alComprarPro,
+    required this.esPro,
+    required this.diamantes,
   });
 
   // Devuelve un Future que se completa al cerrar la tienda
-  static Future<void> show(
+  static Future<void> mostrar(
     BuildContext context, {
-    required ValueChanged<int> onBuyDiamonds,
-    required VoidCallback onBuyPro,
-    required bool isPro,
-    required int diamonds,
+    required ValueChanged<int> alComprarDiamantes,
+    required VoidCallback alComprarPro,
+    required bool esPro,
+    required int diamantes,
   }) {
-    return GameModal.show(
+    return GameModal.mostrar(
       context,
-      builder: (_) => ShopModal(
-        onBuyDiamonds: onBuyDiamonds,
-        onBuyPro: onBuyPro,
-        isPro: isPro,
-        diamonds: diamonds,
+      constructor: (_) => ShopModal(
+        alComprarDiamantes: alComprarDiamantes,
+        alComprarPro: alComprarPro,
+        esPro: esPro,
+        diamantes: diamantes,
       ),
     );
   }
@@ -59,62 +59,62 @@ class ShopModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GameModal(
-      title: 'Tienda',
-      color: AppColors.orange,
-      titleColor: AppColors.cream,
-      topRight: Button(
-        icon: Icons.close_rounded,
-        onPress: () => Navigator.pop(context),
-        backgroundColor: AppColors.pink,
-        textColor: AppColors.ink,
-        radius: 999,
-        tooltip: 'Cerrar',
-        size: 34,
+      titulo: 'Tienda',
+      color: AppColors.naranja,
+      colorTitulo: AppColors.crema,
+      esquinaDerecha: Button(
+        icono: Icons.close_rounded,
+        alPresionar: () => Navigator.pop(context),
+        colorFondo: AppColors.rosa,
+        colorTexto: AppColors.tinta,
+        radio: 999,
+        descripcion: 'Cerrar',
+        tamano: 34,
       ),
-      child: Column(
+      contenido: Column(
         children: [
           // Saldo actual
           Align(
             alignment: Alignment.centerLeft,
             child: CustomBadge(
-              label: 'Tenés $diamonds diamantes',
-              backgroundColor: AppColors.cream,
-              icon: Icons.diamond_rounded,
-              iconColor: AppColors.diamond,
-              fontSize: 13,
+              etiqueta: 'Tenés $diamantes diamantes',
+              colorFondo: AppColors.crema,
+              icono: Icons.diamond_rounded,
+              colorIcono: AppColors.diamante,
+              tamanoLetra: 13,
             ),
           ),
           const SizedBox(height: 16),
 
           // Paquetes de diamantes en grilla de 2x2
-          for (var row = 0; row < _packs.length; row += 2) ...[
-            if (row > 0) const SizedBox(height: 16),
+          for (var fila = 0; fila < _paquetes.length; fila += 2) ...[
+            if (fila > 0) const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _buildPack(context, _packs[row])),
+                Expanded(child: _construirPaquete(context, _paquetes[fila])),
                 const SizedBox(width: 10),
-                Expanded(child: _buildPack(context, _packs[row + 1])),
+                Expanded(child: _construirPaquete(context, _paquetes[fila + 1])),
               ],
             ),
           ],
           const SizedBox(height: 14),
 
-          _buildProCard(context),
+          _construirTarjetaPro(context),
           const SizedBox(height: 10),
 
           Text(
             'Compras simuladas: no se cobra dinero real',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.ink.withValues(alpha: 0.75), fontWeight: FontWeight.w700, fontSize: 11),
+            style: TextStyle(color: AppColors.tinta.withValues(alpha: 0.75), fontWeight: FontWeight.w700, fontSize: 11),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPack(BuildContext context, _DiamondPack pack) {
-    final tag = pack.tag;
+  Widget _construirPaquete(BuildContext context, _DiamondPack paquete) {
+    final etiqueta = paquete.etiqueta;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -123,50 +123,50 @@ class ShopModal extends StatelessWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(10, 14, 10, 10),
           decoration: BoxDecoration(
-            color: AppColors.cream,
+            color: AppColors.crema,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.ink, width: 2.5),
+            border: Border.all(color: AppColors.tinta, width: 2.5),
           ),
           child: Column(
             children: [
               SizedBox(
                 height: 46,
                 child: Center(
-                  child: Icon(Icons.diamond_rounded, color: AppColors.diamond, size: pack.iconSize, shadows: const [
-                    Shadow(color: AppColors.ink, offset: Offset(1, 2)),
+                  child: Icon(Icons.diamond_rounded, color: AppColors.diamante, size: paquete.tamanoIcono, shadows: const [
+                    Shadow(color: AppColors.tinta, offset: Offset(1, 2)),
                   ]),
                 ),
               ),
               Text(
-                '${pack.amount}',
-                style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 24, height: 1.1),
+                '${paquete.cantidad}',
+                style: const TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w900, fontSize: 24, height: 1.1),
               ),
               const Text(
                 'diamantes',
-                style: TextStyle(color: AppColors.inkMuted, fontWeight: FontWeight.w700, fontSize: 12),
+                style: TextStyle(color: AppColors.tintaSuave, fontWeight: FontWeight.w700, fontSize: 12),
               ),
               const SizedBox(height: 8),
               Button(
-                label: pack.price,
-                onPress: () {
-                  onBuyDiamonds(pack.amount);
+                etiqueta: paquete.precio,
+                alPresionar: () {
+                  alComprarDiamantes(paquete.cantidad);
                   Navigator.pop(context);
                 },
-                backgroundColor: AppColors.green,
-                textColor: AppColors.ink,
+                colorFondo: AppColors.verde,
+                colorTexto: AppColors.tinta,
               ),
             ],
           ),
         ),
         // Etiqueta sobre el borde superior
-        if (tag != null)
+        if (etiqueta != null)
           Positioned(
             top: -10,
             child: CustomBadge(
-              label: tag,
-              backgroundColor: AppColors.pink,
-              textColor: Colors.white,
-              fontSize: 10,
+              etiqueta: etiqueta,
+              colorFondo: AppColors.rosa,
+              colorTexto: Colors.white,
+              tamanoLetra: 10,
             ),
           ),
       ],
@@ -174,28 +174,28 @@ class ShopModal extends StatelessWidget {
   }
 
   // Suscripción PRO: sin publicidad + diamantes de regalo
-  Widget _buildProCard(BuildContext context) {
+  Widget _construirTarjetaPro(BuildContext context) {
     return Semantics(
       button: true,
-      enabled: !isPro,
+      enabled: !esPro,
       child: GestureDetector(
-        onTap: isPro
+        onTap: esPro
             ? null
             : () {
-                onBuyPro();
+                alComprarPro();
                 Navigator.pop(context);
               },
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.teal,
+            color: AppColors.turquesa,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.ink, width: 2.5),
+            border: Border.all(color: AppColors.tinta, width: 2.5),
           ),
           child: Row(
             children: [
-              const Icon(Icons.workspace_premium_rounded, color: AppColors.accountPro, size: 38, shadows: [
-                Shadow(color: AppColors.ink, offset: Offset(1, 2)),
+              const Icon(Icons.workspace_premium_rounded, color: AppColors.cuentaPro, size: 38, shadows: [
+                Shadow(color: AppColors.tinta, offset: Offset(1, 2)),
               ]),
               const SizedBox(width: 8),
               const Expanded(
@@ -208,12 +208,12 @@ class ShopModal extends StatelessWidget {
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
-                        shadows: [Shadow(color: AppColors.ink, offset: Offset(1, 1.5))],
+                        shadows: [Shadow(color: AppColors.tinta, offset: Offset(1, 1.5))],
                       ),
                     ),
                     Text(
-                      'Sin publicidad · Revivir a ${GameRules.reviveCostPro} 💎 · ${GameRules.proMonthlyDiamonds} 💎 por mes',
-                      style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700, fontSize: 12),
+                      'Sin publicidad · Revivir a ${GameRules.costoRevivirPro} 💎 · ${GameRules.diamantesMensualesPro} 💎 por mes',
+                      style: TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w700, fontSize: 12),
                     ),
                   ],
                 ),
@@ -223,24 +223,24 @@ class ShopModal extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isPro ? AppColors.green : AppColors.yellow,
+                  color: esPro ? AppColors.verde : AppColors.amarillo,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.ink, width: 2.5),
+                  border: Border.all(color: AppColors.tinta, width: 2.5),
                 ),
-                child: isPro
+                child: esPro
                     ? const Text(
                         '✓ ACTIVO',
-                        style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 13),
+                        style: TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w900, fontSize: 13),
                       )
                     : const Column(
                         children: [
                           Text(
-                            GameRules.proMonthlyPrice,
-                            style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w900, fontSize: 14),
+                            GameRules.precioMensualPro,
+                            style: TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w900, fontSize: 14),
                           ),
                           Text(
                             '/MES',
-                            style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 10),
+                            style: TextStyle(color: AppColors.tinta, fontWeight: FontWeight.w800, fontSize: 10),
                           ),
                         ],
                       ),

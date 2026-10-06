@@ -4,21 +4,21 @@ import '../../models/game_state.dart';
 import '../atoms/button.dart';
 
 class ControlPanel extends StatelessWidget {
-  final GameState gameState;
-  final VoidCallback onStart;
-  final VoidCallback onPause;
-  final VoidCallback onResume;
-  final VoidCallback onRestart;
-  final VoidCallback onNewGame;
+  final GameState estadoJuego;
+  final VoidCallback alIniciar;
+  final VoidCallback alPausar;
+  final VoidCallback alReanudar;
+  final VoidCallback alReiniciar;
+  final VoidCallback alNuevaPartida;
 
   const ControlPanel({
     super.key,
-    required this.gameState,
-    required this.onStart,
-    required this.onPause,
-    required this.onResume,
-    required this.onRestart,
-    required this.onNewGame,
+    required this.estadoJuego,
+    required this.alIniciar,
+    required this.alPausar,
+    required this.alReanudar,
+    required this.alReiniciar,
+    required this.alNuevaPartida,
   });
 
   @override
@@ -31,69 +31,69 @@ class ControlPanel extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.ink, width: 3),
+          border: Border.all(color: AppColors.tinta, width: 3),
           boxShadow: const [
-            BoxShadow(color: AppColors.ink, offset: Offset(0, 5), blurRadius: 0),
+            BoxShadow(color: AppColors.tinta, offset: Offset(0, 5), blurRadius: 0),
           ],
         ),
         // Solo se muestran los botones que sirven en cada estado
         child: Row(
           children: [
-            if (gameState == GameState.idle)
+            if (estadoJuego == GameState.idle)
               Expanded(
                 child: Button(
-                  label: 'Iniciar partida',
-                  icon: Icons.play_arrow_rounded,
-                  onPress: onStart,
-                  backgroundColor: AppColors.green,
+                  etiqueta: 'Iniciar partida',
+                  icono: Icons.play_arrow_rounded,
+                  alPresionar: alIniciar,
+                  colorFondo: AppColors.verde,
                 ),
               ),
-            if (gameState == GameState.playing) ...[
+            if (estadoJuego == GameState.playing) ...[
               Expanded(
                 child: Button(
-                  label: 'Pausar',
-                  icon: Icons.pause_rounded,
-                  onPress: onPause,
-                  backgroundColor: AppColors.yellow,
-                  textColor: AppColors.ink,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Button(
-                  label: 'Reiniciar',
-                  icon: Icons.replay_rounded,
-                  onPress: onRestart,
-                  backgroundColor: AppColors.orange,
-                ),
-              ),
-            ],
-            if (gameState == GameState.paused) ...[
-              Expanded(
-                child: Button(
-                  label: 'Reanudar',
-                  icon: Icons.play_arrow_rounded,
-                  onPress: onResume,
-                  backgroundColor: AppColors.green,
+                  etiqueta: 'Pausar',
+                  icono: Icons.pause_rounded,
+                  alPresionar: alPausar,
+                  colorFondo: AppColors.amarillo,
+                  colorTexto: AppColors.tinta,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Button(
-                  label: 'Reiniciar',
-                  icon: Icons.replay_rounded,
-                  onPress: onRestart,
-                  backgroundColor: AppColors.orange,
+                  etiqueta: 'Reiniciar',
+                  icono: Icons.replay_rounded,
+                  alPresionar: alReiniciar,
+                  colorFondo: AppColors.naranja,
                 ),
               ),
             ],
-            if (gameState == GameState.gameOver)
+            if (estadoJuego == GameState.paused) ...[
               Expanded(
                 child: Button(
-                  label: 'Nueva partida',
-                  icon: Icons.add_rounded,
-                  onPress: onNewGame,
-                  backgroundColor: AppColors.pink,
+                  etiqueta: 'Reanudar',
+                  icono: Icons.play_arrow_rounded,
+                  alPresionar: alReanudar,
+                  colorFondo: AppColors.verde,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Button(
+                  etiqueta: 'Reiniciar',
+                  icono: Icons.replay_rounded,
+                  alPresionar: alReiniciar,
+                  colorFondo: AppColors.naranja,
+                ),
+              ),
+            ],
+            if (estadoJuego == GameState.gameOver)
+              Expanded(
+                child: Button(
+                  etiqueta: 'Nueva partida',
+                  icono: Icons.add_rounded,
+                  alPresionar: alNuevaPartida,
+                  colorFondo: AppColors.rosa,
                 ),
               ),
           ],

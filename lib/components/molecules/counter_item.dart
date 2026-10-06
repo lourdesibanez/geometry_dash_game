@@ -4,36 +4,36 @@ import '../../core/theme.dart';
 
 // Tarjeta de estadística: ícono + etiqueta chica + valor grande (+ acción opcional)
 class CounterItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color badgeColor; // Color del ícono
-  final Widget? trailing;
+  final IconData icono;
+  final String etiqueta;
+  final String valor;
+  final Color colorIcono;
+  final Widget? extra;
 
   const CounterItem({
     super.key,
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.badgeColor,
-    this.trailing,
+    required this.icono,
+    required this.etiqueta,
+    required this.valor,
+    required this.colorIcono,
+    this.extra,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.night : Colors.white,
+        color: esOscuro ? AppColors.noche : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.ink, width: 2.5),
+        border: Border.all(color: AppColors.tinta, width: 2.5),
       ),
       child: Row(
         children: [
-          Icon(icon, color: badgeColor, size: 26, shadows: const [
-            Shadow(color: AppColors.ink, offset: Offset(1, 1.5)),
+          Icon(icono, color: colorIcono, size: 26, shadows: const [
+            Shadow(color: AppColors.tinta, offset: Offset(1, 1.5)),
           ]),
           const SizedBox(width: 8),
           Expanded(
@@ -41,18 +41,18 @@ class CounterItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label.toUpperCase(),
+                  etiqueta.toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
-                    color: isDark ? AppColors.lilac.withValues(alpha: 0.7) : AppColors.inkMuted,
+                    color: esOscuro ? AppColors.lila.withValues(alpha: 0.7) : AppColors.tintaSuave,
                   ),
                 ),
                 Text(
-                  value,
+                  valor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -65,7 +65,7 @@ class CounterItem extends StatelessWidget {
               ],
             ),
           ),
-          ?trailing,
+          ?extra,
         ],
       ),
     );

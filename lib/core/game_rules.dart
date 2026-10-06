@@ -1,18 +1,18 @@
 // Reglas de negocio del juego: si cambia un precio o un premio, se cambia solo acá
 class GameRules {
-  static const int pointsPerObstacle = 10; // Puntos por cada obstáculo esquivado
-  static const int initialDiamonds = 50; // Diamantes con los que arranca un jugador nuevo
+  static const int puntosPorObstaculo = 10; // Puntos por cada obstáculo esquivado
+  static const int diamantesIniciales = 50; // Diamantes con los que arranca un jugador nuevo
 
   // Diamantes para agarrar en el juego: aparecen flotando sobre el pincho
-  static const int obstaclesPerDiamond = 3; // Uno de cada 3 pinchos trae diamante
-  static const int diamondsPerPickup = 1;
+  static const int obstaculosPorDiamante = 3; // Uno de cada 3 pinchos trae diamante
+  static const int diamantesPorAgarrar = 1;
 
   // Revivir (una vez por partida)
-  static const int reviveCostBasic = 10;
-  static const int reviveCostPro = 5;
+  static const int costoRevivirBasic = 10;
+  static const int costoRevivirPro = 5;
 
   // Cuenta PRO
-  static const int proMonthlyDiamonds = 50; // Regalo mensual
-  static const Duration proGiftPeriod = Duration(days: 30);
-  static const String proMonthlyPrice = '\$ 3,99';
+  static const int diamantesMensualesPro = 50; // Regalo mensual
+  static const Duration periodoRegaloPro = Duration(days: 30);
+  static const String precioMensualPro = '\$ 3,99';
 }

@@ -11,43 +11,43 @@ import 'diamond_component.dart';
 // vuelve a entrar por la derecha como un pincho nuevo (y suma puntos).
 // Uno de cada N trae un diamante flotando encima.
 class ObstacleComponent extends PositionComponent with HasGameReference<DashGame> {
-  ObstacleComponent() : super(size: Vector2.all(GameConfig.obstacleSize));
+  ObstacleComponent() : super(size: Vector2.all(GameConfig.tamanoObstaculo));
 
   double? _x; // null = todavía no entró (aparece en el borde derecho)
-  int _count = 1; // Cuántos pinchos aparecieron en la partida (el actual incluido)
-  DiamondComponent? _diamond;
+  int _cantidad = 1; // Cuántos pinchos aparecieron en la partida (el actual incluido)
+  DiamondComponent? _diamante;
 
   @override
   Future<void> onLoad() async {
     add(RectangleHitbox(
-      position: Vector2.all(GameConfig.hitboxInset),
-      size: size - Vector2.all(GameConfig.hitboxInset * 2),
+      position: Vector2.all(GameConfig.margenHitbox),
+      size: size - Vector2.all(GameConfig.margenHitbox * 2),
     ));
   }
 
-  void reset() {
+  void reiniciar() {
     _x = null;
-    _count = 1;
-    removeDiamond();
+    _cantidad = 1;
+    quitarDiamante();
   }
 
-  void respawnAtEdge() => _x = null;
+  void reaparecerEnBorde() => _x = null;
 
-  void removeDiamond() {
-    _diamond?.removeFromParent();
-    _diamond = null;
+  void quitarDiamante() {
+    _diamante?.removeFromParent();
+    _diamante = null;
   }
 
-  void _spawnDiamond() {
-    if (_diamond != null) return;
+  void _crearDiamante() {
+    if (_diamante != null) return;
     // Centrado sobre el pincho y a la altura máxima del salto
-    final diamond = DiamondComponent()
+    final diamante = DiamondComponent()
       ..position = Vector2(
-        (size.x - GameConfig.diamondSize) / 2,
-        size.y - GameConfig.jumpPeak - GameConfig.diamondSize / 2,
+        (size.x - GameConfig.tamanoDiamante) / 2,
+        size.y - GameConfig.alturaMaximaSalto - GameConfig.tamanoDiamante / 2,
       );
-    _diamond = diamond;
-    add(diamond);
+    _diamante = diamante;
+    add(diamante);
   }
 
   @override
@@ -55,41 +55,41 @@ class ObstacleComponent extends PositionComponent with HasGameReference<DashGame
     super.update(dt);
     if (game.size.x <= 0) return; // Todavía sin tamaño
 
-    var x = (_x ?? game.size.x) - GameConfig.obstacleSpeed * dt;
+    var x = (_x ?? game.size.x) - GameConfig.velocidadObstaculo * dt;
     if (x < -size.x) {
       x = game.size.x;
-      _count++;
-      game.onScoreTick();
-      if (_count % GameRules.obstaclesPerDiamond == 0) {
-        _spawnDiamond();
+      _cantidad++;
+      game.alSumarPuntos();
+      if (_cantidad % GameRules.obstaculosPorDiamante == 0) {
+        _crearDiamante();
       } else {
-        removeDiamond();
+        quitarDiamante();
       }
     }
     _x = x;
-    position.setValues(x, game.groundTop - size.y);
+    position.setValues(x, game.bordePiso - size.y);
   }
 
   @override
   void render(Canvas canvas) {
-    final fill = Paint()..color = AppColors.ink;
-    final stroke = Paint()
+    final relleno = Paint()..color = AppColors.tinta;
+    final contorno = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeJoin = StrokeJoin.round;
-    final half = size.x / 2;
-    final top = size.y * 0.15; // Puntas cerca del borde de la hitbox
+    final mitad = size.x / 2;
+    final punta = size.y * 0.15; // Puntas cerca del borde de la hitbox
 
     for (var i = 0; i < 2; i++) {
-      final left = i * half;
-      final path = Path()
-        ..moveTo(left, size.y)
-        ..lineTo(left + half / 2, top)
-        ..lineTo(left + half, size.y)
+      final izquierda = i * mitad;
+      final camino = Path()
+        ..moveTo(izquierda, size.y)
+        ..lineTo(izquierda + mitad / 2, punta)
+        ..lineTo(izquierda + mitad, size.y)
         ..close();
-      canvas.drawPath(path, fill);
-      canvas.drawPath(path, stroke);
+      canvas.drawPath(camino, relleno);
+      canvas.drawPath(camino, contorno);
     }
   }
 }

@@ -7,103 +7,103 @@ import 'package:geometry_dash_game/models/game_state.dart';
 import 'package:geometry_dash_game/models/player_state.dart';
 
 // Simula lo que hay guardado en el dispositivo (vacío = jugador nuevo)
-Future<GameController> loadController([Map<String, dynamic>? saved]) async {
+Future<GameController> cargarControlador([Map<String, dynamic>? guardado]) async {
   SharedPreferences.setMockInitialValues(
-    saved == null ? {} : {'@game_player_state': jsonEncode(saved)},
+    guardado == null ? {} : {'@game_player_state': jsonEncode(guardado)},
   );
-  final controller = GameController();
-  await controller.load();
-  return controller;
+  final controlador = GameController();
+  await controlador.cargar();
+  return controlador;
 }
 
 void main() {
   test('Un jugador nuevo arranca en BASIC, modo claro y con los diamantes iniciales', () async {
-    final game = await loadController();
+    final juego = await cargarControlador();
 
-    expect(game.isPro, isFalse);
-    expect(game.isDarkMode, isFalse);
-    expect(game.player.diamonds, GameRules.initialDiamonds);
-    expect(game.gameState, GameState.idle);
+    expect(juego.esPro, isFalse);
+    expect(juego.modoOscuro, isFalse);
+    expect(juego.jugador.diamantes, GameRules.diamantesIniciales);
+    expect(juego.estadoJuego, GameState.idle);
   });
 
   test('Sumar puntos actualiza el récord, y una partida nueva lo conserva', () async {
-    final game = await loadController();
+    final juego = await cargarControlador();
 
-    game.startGame();
-    game.addScore();
-    game.addScore();
-    expect(game.player.score, 2 * GameRules.pointsPerObstacle);
-    expect(game.player.highScore, 2 * GameRules.pointsPerObstacle);
+    juego.iniciarPartida();
+    juego.sumarPuntos();
+    juego.sumarPuntos();
+    expect(juego.jugador.puntaje, 2 * GameRules.puntosPorObstaculo);
+    expect(juego.jugador.record, 2 * GameRules.puntosPorObstaculo);
 
-    game.startGame();
-    game.addScore();
-    expect(game.player.score, GameRules.pointsPerObstacle);
-    expect(game.player.highScore, 2 * GameRules.pointsPerObstacle); // No baja
+    juego.iniciarPartida();
+    juego.sumarPuntos();
+    expect(juego.jugador.puntaje, GameRules.puntosPorObstaculo);
+    expect(juego.jugador.record, 2 * GameRules.puntosPorObstaculo); // No baja
   });
 
   test('Se revive una sola vez por partida y cuesta diamantes', () async {
-    final game = await loadController();
-    game.startGame();
+    final juego = await cargarControlador();
+    juego.iniciarPartida();
 
-    expect(game.hit(), isTrue); // Primer choque: se ofrece revivir
-    expect(game.gameState, GameState.paused);
+    expect(juego.chocar(), isTrue); // Primer choque: se ofrece revivir
+    expect(juego.estadoJuego, GameState.paused);
 
-    game.revive();
-    expect(game.player.diamonds, GameRules.initialDiamonds - GameRules.reviveCostBasic);
+    juego.revivir();
+    expect(juego.jugador.diamantes, GameRules.diamantesIniciales - GameRules.costoRevivirBasic);
 
-    game.resume();
-    expect(game.hit(), isFalse); // Segundo choque: se termina
-    expect(game.gameState, GameState.gameOver);
+    juego.reanudar();
+    expect(juego.chocar(), isFalse); // Segundo choque: se termina
+    expect(juego.estadoJuego, GameState.gameOver);
   });
 
   test('Sin diamantes suficientes no se puede revivir', () async {
-    final game = await loadController(PlayerState.initial().copyWith(diamonds: 3).toJson());
-    game.startGame();
-    game.hit();
+    final juego = await cargarControlador(PlayerState.inicial().copiarCon(diamantes: 3).aJson());
+    juego.iniciarPartida();
+    juego.chocar();
 
-    game.revive();
-    expect(game.player.diamonds, 3);
-    expect(game.reviveCount, 0);
+    juego.revivir();
+    expect(juego.jugador.diamantes, 3);
+    expect(juego.vecesRevivido, 0);
   });
 
   test('Comprar PRO regala diamantes y abarata el revivir', () async {
-    final game = await loadController();
+    final juego = await cargarControlador();
 
-    game.buyPro();
-    expect(game.isPro, isTrue);
-    expect(game.player.diamonds, GameRules.initialDiamonds + GameRules.proMonthlyDiamonds);
-    expect(game.reviveCost, GameRules.reviveCostPro);
+    juego.comprarPro();
+    expect(juego.esPro, isTrue);
+    expect(juego.jugador.diamantes, GameRules.diamantesIniciales + GameRules.diamantesMensualesPro);
+    expect(juego.costoRevivir, GameRules.costoRevivirPro);
   });
 
   test('Un PRO que vuelve después de dos meses recibe los dos regalos', () async {
-    final twoMonthsAgo = DateTime.now().subtract(GameRules.proGiftPeriod * 2).millisecondsSinceEpoch;
+    final haceDosMeses = DateTime.now().subtract(GameRules.periodoRegaloPro * 2).millisecondsSinceEpoch;
     SharedPreferences.setMockInitialValues({
-      '@game_player_state': jsonEncode(PlayerState.initial()
-          .copyWith(accountType: AccountType.pro, lastProGiftAt: twoMonthsAgo)
-          .toJson()),
+      '@game_player_state': jsonEncode(PlayerState.inicial()
+          .copiarCon(tipoCuenta: AccountType.pro, ultimoRegaloPro: haceDosMeses)
+          .aJson()),
     });
 
-    final game = GameController();
-    final gift = await game.load();
-    expect(gift, 2 * GameRules.proMonthlyDiamonds);
-    expect(game.player.diamonds, GameRules.initialDiamonds + gift);
+    final juego = GameController();
+    final regalo = await juego.cargar();
+    expect(regalo, 2 * GameRules.diamantesMensualesPro);
+    expect(juego.jugador.diamantes, GameRules.diamantesIniciales + regalo);
   });
 
   test('El modo oscuro se guarda y se recuerda al volver a abrir la app', () async {
-    final game = await loadController();
-    game.toggleTheme();
-    expect(game.isDarkMode, isTrue);
+    final juego = await cargarControlador();
+    juego.alternarTema();
+    expect(juego.modoOscuro, isTrue);
 
-    // "Reabrir la app": un controller nuevo leyendo el mismo almacenamiento
-    final reopened = GameController();
-    await reopened.load();
-    expect(reopened.isDarkMode, isTrue);
+    // "Reabrir la app": un controlador nuevo leyendo el mismo almacenamiento
+    final reabierto = GameController();
+    await reabierto.cargar();
+    expect(reabierto.modoOscuro, isTrue);
   });
 
   test('Lee partidas guardadas por versiones anteriores (accountType como texto)', () async {
-    final game = await loadController({'username': 'Viejo', 'accountType': 'pro', 'diamonds': 7});
+    final juego = await cargarControlador({'username': 'Viejo', 'accountType': 'pro', 'diamonds': 7});
 
-    expect(game.isPro, isTrue);
-    expect(game.player.username, 'Viejo');
+    expect(juego.esPro, isTrue);
+    expect(juego.jugador.nombreUsuario, 'Viejo');
   });
 }
