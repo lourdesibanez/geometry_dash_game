@@ -13,6 +13,7 @@ class GameModal extends StatelessWidget {
   final Widget? esquinaDerecha; // Ej: cuenta regresiva o botón de cerrar
   final Widget contenido;
   final List<Widget> acciones;  // Se reparten a lo ancho
+  final Widget? pie;            // Debajo de los botones (ej: una opción secundaria)
   final bool cerrable;          // false: no se cierra con atrás ni tocando afuera
 
   const GameModal({
@@ -23,6 +24,7 @@ class GameModal extends StatelessWidget {
     this.colorTitulo = AppColors.amarillo,
     this.esquinaDerecha,
     this.acciones = const [],
+    this.pie,
     this.cerrable = true,
   });
 
@@ -91,6 +93,10 @@ class GameModal extends StatelessWidget {
                     ],
                   ],
                 ),
+              ],
+              if (pie != null) ...[
+                const SizedBox(height: 12),
+                pie!,
               ],
             ],
           ),

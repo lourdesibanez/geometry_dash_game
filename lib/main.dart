@@ -15,7 +15,7 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 }
-
+//Arranca la app, crea el único controlador y aplica el tema claro u oscuro.
 class _MyAppState extends State<MyApp> {
   // Un único controller para toda la app: las reglas del juego
   final GameController _controlador = GameController();

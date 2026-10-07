@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/game_rules.dart';
 import '../../core/theme.dart';
 import '../atoms/badge.dart';
+import '../../game/game_icons.dart';
 import '../atoms/button.dart';
+import '../atoms/game_icon_image.dart';
 import 'game_modal.dart';
 
 // Paquete de diamantes a la venta
@@ -132,9 +134,7 @@ class ShopModal extends StatelessWidget {
               SizedBox(
                 height: 46,
                 child: Center(
-                  child: Icon(Icons.diamond_rounded, color: AppColors.diamante, size: paquete.tamanoIcono, shadows: const [
-                    Shadow(color: AppColors.tinta, offset: Offset(1, 2)),
-                  ]),
+                  child: GameIconImage(GameIcon.diamante, tamano: paquete.tamanoIcono),
                 ),
               ),
               Text(

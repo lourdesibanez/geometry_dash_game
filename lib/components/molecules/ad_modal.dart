@@ -92,7 +92,7 @@ class _AdModalState extends State<AdModal> {
         children: [
           _construirVideoAnuncio(),
           const SizedBox(height: 12),
-          const InfoBox('Después del anuncio arranca tu partida.\n¿Sin anuncios? ¡Pasate a PRO!'),
+          const InfoBox('¿Sin anuncios? ¡Pasate a PRO!'),
         ],
       ),
     );

@@ -1,16 +1,13 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
 import '../game_config.dart';
+import '../game_icons.dart';
 
-// Diamante para agarrar saltando (mismo ícono que el header y la tienda).
+// Diamante para agarrar saltando (mismo dibujo que el header y la tienda: GameIcon.diamante).
 // La hitbox no se achica: para agarrarlo alcanza con rozarlo.
 class DiamondComponent extends PositionComponent {
   DiamondComponent() : super(size: Vector2.all(GameConfig.tamanoDiamante));
-
-  static final _sombra = _pintorDiamante(AppColors.tinta);
-  static final _icono = _pintorDiamante(AppColors.diamante);
 
   @override
   Future<void> onLoad() async {
@@ -18,24 +15,5 @@ class DiamondComponent extends PositionComponent {
   }
 
   @override
-  void render(Canvas canvas) {
-    _sombra.paint(canvas, const Offset(1.5, 2));
-    _icono.paint(canvas, Offset.zero);
-  }
-}
-
-TextPainter _pintorDiamante(Color color) {
-  const icono = Icons.diamond_rounded;
-  return TextPainter(
-    text: TextSpan(
-      text: String.fromCharCode(icono.codePoint),
-      style: TextStyle(
-        fontFamily: icono.fontFamily,
-        package: icono.fontPackage,
-        fontSize: GameConfig.tamanoDiamante,
-        color: color,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
+  void render(Canvas canvas) => GameIcon.diamante.pintar(canvas, size.x);
 }

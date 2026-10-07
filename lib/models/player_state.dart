@@ -2,6 +2,7 @@ import '../core/game_rules.dart';
 
 enum AccountType { basic, pro }
 
+//	Cómo es un jugador: nombre, puntaje, récord, diamantes, cuenta, tema.
 class PlayerState {
   final String nombreUsuario;
   final int puntaje;

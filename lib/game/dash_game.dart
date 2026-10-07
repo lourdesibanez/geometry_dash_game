@@ -1,17 +1,20 @@
 import 'dart:math' as math;
-import 'dart:ui';
+import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
+import '../core/game_rules.dart';
 import 'components/diamond_component.dart';
+import 'components/floating_reward_component.dart';
 import 'components/ground_component.dart';
 import 'components/obstacle_component.dart';
 import 'components/player_component.dart';
 import 'components/sky_component.dart';
 import 'game_config.dart';
+import 'game_icons.dart';
 
-// Juego hecho con Flame. La UI (botonera, header, modales) es Flutter y lo controla
-// desde afuera con [corriendo], [reiniciar] y [quitarObstaculo]; el juego avisa lo que
-// pasa por callbacks.
+// El juego en sí. Junta las piezas, recibe el toque para saltar, 
+//congela la física en pausa y le avisa a Flutter cuando chocás, esquivás o agarrás un diamante
 class DashGame extends FlameGame with TapCallbacks, HasCollisionDetection {
   final VoidCallback alChocar;
   final VoidCallback alSumarPuntos;
@@ -62,6 +65,8 @@ class DashGame extends FlameGame with TapCallbacks, HasCollisionDetection {
     jugador.reiniciar();
     obstaculo.reiniciar();
     piso.reiniciar();
+    // Premios flotantes que quedaron a medio animar
+    removeAll(children.whereType<FloatingRewardComponent>().toList());
   }
 
   // Al revivir: el obstáculo que nos golpeó reaparece en el borde derecho
@@ -76,6 +81,24 @@ class DashGame extends FlameGame with TapCallbacks, HasCollisionDetection {
   void agarrarDiamante(DiamondComponent diamante) {
     if (!corriendo) return;
     obstaculo.quitarDiamante();
+    // "+1" con diamante que sale desde arriba del cubo, sube y se desvanece
+    add(FloatingRewardComponent(
+      texto: '+${GameRules.diamantesPorAgarrar}',
+      icono: GameIcon.diamante,
+      posicion: jugador.position + Vector2(jugador.size.x / 2, -4),
+    ));
     alAgarrarDiamante();
+  }
+
+  // Un pincho salió por la izquierda: "+10" con estrella en la esquina superior derecha
+  // (arranca 60 px más abajo para terminar de subir a 16 px del borde)
+  void esquivarObstaculo() {
+    add(FloatingRewardComponent(
+      texto: '+${GameRules.puntosPorObstaculo}',
+      icono: GameIcon.estrella,
+      posicion: Vector2(size.x - 16, 76),
+      ancla: Anchor.topRight,
+    ));
+    alSumarPuntos();
   }
 }

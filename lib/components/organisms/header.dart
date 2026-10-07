@@ -3,7 +3,8 @@ import '../../core/theme.dart';
 import '../../models/player_state.dart';
 import '../atoms/badge.dart';
 import '../atoms/button.dart';
-import '../atoms/player.dart';
+import '../../game/components/player_component.dart';
+import '../../game/game_icons.dart';
 import '../molecules/counter_item.dart';
 
 class Header extends StatelessWidget {
@@ -43,8 +44,8 @@ class Header extends StatelessWidget {
             // Fila Jugador + Tipo de cuenta + Tema
             Row(
               children: [
-                // Avatar: el mismo cubo del juego
-                const Player(tamano: 46),
+                // Avatar: el mismo dibujo que el cubo del juego (PlayerComponent)
+                const CustomPaint(size: Size.square(46), painter: _AvatarPainter()),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -106,10 +107,9 @@ class Header extends StatelessWidget {
               children: [
                 Expanded(
                   child: CounterItem(
-                    icono: Icons.star_rounded,
+                    icono: GameIcon.estrella,
                     etiqueta: 'Puntos',
                     valor: '${estadoJugador.puntaje}',
-                    colorIcono: AppColors.amarillo,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -121,10 +121,9 @@ class Header extends StatelessWidget {
                     child: GestureDetector(
                       onTap: alAbrirTienda,
                       child: CounterItem(
-                        icono: Icons.diamond_rounded,
+                        icono: GameIcon.diamante,
                         etiqueta: 'Diamantes',
                         valor: '${estadoJugador.diamantes}',
-                        colorIcono: AppColors.diamante,
                       ),
                     ),
                   ),
@@ -136,4 +135,15 @@ class Header extends StatelessWidget {
       ),
     );
   }
+}
+
+// Pinta el avatar con el dibujo del personaje del juego: una sola definición del cubo
+class _AvatarPainter extends CustomPainter {
+  const _AvatarPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) => PlayerComponent.dibujarCubo(canvas, size.width);
+
+  @override
+  bool shouldRepaint(_AvatarPainter oldDelegate) => false;
 }

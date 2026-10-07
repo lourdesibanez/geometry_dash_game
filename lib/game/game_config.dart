@@ -1,6 +1,4 @@
 // Física y medidas del juego, en píxeles y segundos.
-// Ajustada para niños: salto alto y con margen, pero con la sensación de
-// Geometry Dash (sube rápido, flota, cae acelerando).
 class GameConfig {
   static const double gravedad = 1800;
   static const double velocidadSalto = 630;

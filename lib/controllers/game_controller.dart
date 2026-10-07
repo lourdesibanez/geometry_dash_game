@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../core/game_rules.dart';
 import '../models/game_state.dart';
@@ -5,7 +6,6 @@ import '../models/player_state.dart';
 import '../services/storage_service.dart';
 
 // Lógica del juego separada de la UI (patrón ViewModel).
-// Guarda el estado de la app, aplica las reglas y avisa a la UI con notifyListeners().
 // La física del salto (60 cuadros por segundo) NO está acá: es estado efímero del juego en Flame.
 class GameController extends ChangeNotifier {
   PlayerState _jugador = PlayerState.inicial();
@@ -13,6 +13,10 @@ class GameController extends ChangeNotifier {
   int _ronda = 0; // Se incrementa en cada partida nueva para resetear el juego
   int _vecesRevivido = 0; // Se incrementa al revivir para sacar el obstáculo que nos golpeó
   bool _yaRevivio = false; // Un solo revivir por partida
+  int _diamantesPartida = 0; // Diamantes agarrados en esta partida (para el resumen final)
+  bool _nuevoRecord = false; // Se superó el récord en esta partida
+  int? _cuentaRegresiva; // 3, 2, 1 al revivir o en NUEVA PARTIDA; null = no hay cuenta en curso
+  Timer? _temporizador;
 
   // Getters de solo lectura: la UI puede leer el estado, pero solo lo cambia con los métodos
   PlayerState get jugador => _jugador;
@@ -22,6 +26,9 @@ class GameController extends ChangeNotifier {
   bool get esPro => _jugador.esPro;
   bool get modoOscuro => _jugador.modoOscuro;
   int get costoRevivir => esPro ? GameRules.costoRevivirPro : GameRules.costoRevivirBasic;
+  int get diamantesPartida => _diamantesPartida;
+  bool get nuevoRecord => _nuevoRecord;
+  int? get cuentaRegresiva => _cuentaRegresiva;
 
   // Fecha de la próxima entrega de diamantes PRO (null si nunca recibió)
   DateTime? get proximoRegaloPro {
@@ -60,17 +67,26 @@ class GameController extends ChangeNotifier {
     return regalo;
   }
 
-  // ---------- Partida ----------
 
-  // INICIAR, NUEVA PARTIDA: arranca de cero y jugando
+  // INICIAR: arranca de cero y jugando
   void iniciarPartida() => _reiniciarRonda(GameState.playing);
 
-  // Después de REINICIAR: arranca de cero en la pantalla de INICIAR PARTIDA
+  // después del game over arranca de cero con la cuenta 3, 2, 1
+  void nuevaPartida() {
+    _reiniciarRonda(GameState.paused);
+    _iniciarCuentaRegresiva();
+    notifyListeners();
+  }
+
+  // después de reiniciar arranca de cero en la pantalla de iniciar partida
   void volverAlInicio() => _reiniciarRonda(GameState.idle);
 
   void _reiniciarRonda(GameState estadoInicial) {
+    _cancelarCuentaRegresiva();
     _ronda++;
     _yaRevivio = false;
+    _diamantesPartida = 0;
+    _nuevoRecord = false;
     _estadoJuego = estadoInicial;
     _actualizar(_jugador.copiarCon(puntaje: 0));
   }
@@ -81,7 +97,7 @@ class GameController extends ChangeNotifier {
 
   // Antes de abrir un modal: que el juego no siga corriendo detrás
   void pausarSiEstaJugando() {
-    if (_estadoJuego == GameState.playing) pausar();
+    if (_estadoJuego == GameState.playing || _cuentaRegresiva != null) pausar();
   }
 
   void terminarPartida() => _cambiarEstadoJuego(GameState.gameOver);
@@ -89,6 +105,7 @@ class GameController extends ChangeNotifier {
   // Suma puntos y, si se supera, actualiza el récord
   void sumarPuntos() {
     final puntaje = _jugador.puntaje + GameRules.puntosPorObstaculo;
+    if (puntaje > _jugador.record) _nuevoRecord = true;
     _actualizar(_jugador.copiarCon(
       puntaje: puntaje,
       record: puntaje > _jugador.record ? puntaje : null,
@@ -97,6 +114,7 @@ class GameController extends ChangeNotifier {
 
   // El jugador agarró un diamante en pantalla
   void agarrarDiamante() {
+    _diamantesPartida += GameRules.diamantesPorAgarrar;
     _actualizar(_jugador.copiarCon(diamantes: _jugador.diamantes + GameRules.diamantesPorAgarrar));
   }
 
@@ -110,12 +128,14 @@ class GameController extends ChangeNotifier {
     return true;
   }
 
-  // Gasta diamantes para seguir. Queda en pausa: sigue cuando toque REANUDAR
+  // Gasta diamantes para seguir. Queda en pausa y arranca la cuenta regresiva:
+  // al llegar a cero el juego sigue solo 
   void revivir() {
     if (_jugador.diamantes < costoRevivir) return;
     _yaRevivio = true;
     _vecesRevivido++;
     _estadoJuego = GameState.paused;
+    _iniciarCuentaRegresiva();
     _actualizar(_jugador.copiarCon(diamantes: _jugador.diamantes - costoRevivir));
   }
 
@@ -145,10 +165,38 @@ class GameController extends ChangeNotifier {
 
   // ---------- Internos ----------
 
-  // Cambios que no se guardan (estado de la partida en curso)
+  // Cambios que no se guardan (estado de la partida en curso).
+  // Cualquier cambio de estado (reanudar, pausar, terminar) corta la cuenta regresiva
   void _cambiarEstadoJuego(GameState estado) {
+    _cancelarCuentaRegresiva();
     _estadoJuego = estado;
     notifyListeners();
+  }
+
+  void _iniciarCuentaRegresiva() {
+    _cancelarCuentaRegresiva();
+    _cuentaRegresiva = GameRules.segundosCuentaRegresiva;
+    _temporizador = Timer.periodic(const Duration(seconds: 1), (_) {
+      final restante = _cuentaRegresiva! - 1;
+      if (restante <= 0) {
+        reanudar();
+      } else {
+        _cuentaRegresiva = restante;
+        notifyListeners();
+      }
+    });
+  }
+
+  void _cancelarCuentaRegresiva() {
+    _temporizador?.cancel();
+    _temporizador = null;
+    _cuentaRegresiva = null;
+  }
+
+  @override
+  void dispose() {
+    _cancelarCuentaRegresiva();
+    super.dispose();
   }
 
   // Cambios del jugador: se guardan en el dispositivo y se avisa a la UI

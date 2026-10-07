@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../dash_game.dart';
 import '../game_config.dart';
+import '../game_icons.dart';
 import 'diamond_component.dart';
 import 'obstacle_component.dart';
 
-// Personaje: cubo amarillo con carita que salta con gravedad y da una vuelta por salto
+// Personaje componente del juego: cubo amarillo con carita que salta con gravedad y da una vuelta por salto
 class PlayerComponent extends PositionComponent with HasGameReference<DashGame>, CollisionCallbacks {
   PlayerComponent() : super(size: Vector2.all(GameConfig.tamanoCubo));
 
@@ -21,8 +22,6 @@ class PlayerComponent extends PositionComponent with HasGameReference<DashGame>,
 
   // Una vuelta completa por salto: la carita siempre aterriza derecha
   double get _giro => enElAire ? 2 * math.pi * (_tiempoEnAire / GameConfig.duracionSalto).clamp(0.0, 1.0) : 0;
-
-  static final _carita = _pintorIcono(Icons.sentiment_very_satisfied, GameConfig.tamanoCubo * 0.68, AppColors.tinta);
 
   @override
   Future<void> onLoad() async {
@@ -101,28 +100,24 @@ class PlayerComponent extends PositionComponent with HasGameReference<DashGame>,
     canvas.translate(size.x / 2, size.y / 2);
     canvas.rotate(_giro);
     canvas.translate(-size.x / 2, -size.y / 2);
+    dibujarCubo(canvas, size.x);
+    canvas.restore();
+  }
 
-    final radio = Radius.circular(size.x * 0.25);
-    canvas.drawRRect(RRect.fromRectAndRadius(size.toRect(), radio), Paint()..color = AppColors.amarillo);
+  // Dibujo del personaje: cubo amarillo con carita, desde (0, 0) y de [lado] × [lado].
+  // Es la única definición del aspecto del cubo: la usan el juego y el avatar del header.
+  static void dibujarCubo(Canvas canvas, double lado) {
+    final rect = Rect.fromLTWH(0, 0, lado, lado);
+    final radio = Radius.circular(lado * 0.25);
+    canvas.drawRRect(RRect.fromRectAndRadius(rect, radio), Paint()..color = AppColors.amarillo);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(size.toRect().deflate(1.5), radio),
+      RRect.fromRectAndRadius(rect.deflate(1.5), radio),
       Paint()
         ..color = AppColors.tinta
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3,
     );
-    _carita.paint(canvas, Offset((size.x - _carita.width) / 2, (size.y - _carita.height) / 2));
-    canvas.restore();
+    final carita = pintorIcono(Icons.sentiment_very_satisfied, lado * 0.68, AppColors.tinta);
+    carita.paint(canvas, Offset((lado - carita.width) / 2, (lado - carita.height) / 2));
   }
-}
-
-// Ícono de Material dibujado en el canvas (mismo que usa el avatar del header)
-TextPainter _pintorIcono(IconData icono, double tamano, Color color) {
-  return TextPainter(
-    text: TextSpan(
-      text: String.fromCharCode(icono.codePoint),
-      style: TextStyle(fontFamily: icono.fontFamily, package: icono.fontPackage, fontSize: tamano, color: color),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
 }

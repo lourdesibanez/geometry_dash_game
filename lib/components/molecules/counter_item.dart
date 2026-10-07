@@ -1,13 +1,14 @@
 // lib/components/molecules/counter_item.dart
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../game/game_icons.dart';
+import '../atoms/game_icon_image.dart';
 
 // Tarjeta de estadística: ícono + etiqueta chica + valor grande (+ acción opcional)
 class CounterItem extends StatelessWidget {
-  final IconData icono;
+  final GameIcon icono; // Ícono del juego (trae su propio color y sombra)
   final String etiqueta;
   final String valor;
-  final Color colorIcono;
   final Widget? extra;
 
   const CounterItem({
@@ -15,7 +16,6 @@ class CounterItem extends StatelessWidget {
     required this.icono,
     required this.etiqueta,
     required this.valor,
-    required this.colorIcono,
     this.extra,
   });
 
@@ -32,9 +32,7 @@ class CounterItem extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icono, color: colorIcono, size: 26, shadows: const [
-            Shadow(color: AppColors.tinta, offset: Offset(1, 1.5)),
-          ]),
+          GameIconImage(icono, tamano: 26),
           const SizedBox(width: 8),
           Expanded(
             child: Column(

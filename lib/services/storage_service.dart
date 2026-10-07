@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/player_state.dart';
 
+//Guarda y lee el jugador en el celular (shared_preferences). Por esto funciona offline.
 class StorageService {
   static const String _clave = '@game_player_state';
 

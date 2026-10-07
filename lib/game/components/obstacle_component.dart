@@ -59,7 +59,7 @@ class ObstacleComponent extends PositionComponent with HasGameReference<DashGame
     if (x < -size.x) {
       x = game.size.x;
       _cantidad++;
-      game.alSumarPuntos();
+      game.esquivarObstaculo();
       if (_cantidad % GameRules.obstaculosPorDiamante == 0) {
         _crearDiamante();
       } else {

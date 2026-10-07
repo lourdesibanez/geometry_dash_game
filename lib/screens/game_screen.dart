@@ -9,6 +9,7 @@ import '../components/molecules/ad_modal.dart';
 import '../components/molecules/revive_modal.dart';
 import '../components/molecules/account_modal.dart';
 import '../components/molecules/game_modal.dart';
+import '../components/molecules/game_over_card.dart';
 
 // Pantalla principal: arma la interfaz y muestra los modales.
 // Las reglas del juego viven en GameController; acá solo se le dice qué hacer.
@@ -20,7 +21,7 @@ class GameScreen extends StatefulWidget {
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
-
+//Arma header + juego + botonera y abre los modales. No tiene reglas: le pide todo al controlador.
 class _GameScreenState extends State<GameScreen> {
   GameController get _juego => widget.controlador;
 
@@ -151,6 +152,13 @@ class _GameScreenState extends State<GameScreen> {
                 alChocar: _alChocar,
                 alSumarPuntos: _juego.sumarPuntos,
                 alAgarrarDiamante: _juego.agarrarDiamante,
+                cuentaRegresiva: _juego.cuentaRegresiva,
+                resumenFinal: GameOverCard(
+                  puntaje: _juego.jugador.puntaje,
+                  record: _juego.jugador.record,
+                  nuevoRecord: _juego.nuevoRecord,
+                  diamantesAgarrados: _juego.diamantesPartida,
+                ),
               ),
             ),
             ControlPanel(
@@ -159,7 +167,7 @@ class _GameScreenState extends State<GameScreen> {
               alPausar: _juego.pausar,
               alReanudar: _juego.reanudar,
               alReiniciar: _reiniciarConAnuncio,
-              alNuevaPartida: _juego.iniciarPartida,
+              alNuevaPartida: _juego.nuevaPartida,
             ),
           ],
         ),

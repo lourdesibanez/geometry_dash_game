@@ -10,6 +10,7 @@ class GameRules {
   // Revivir (una vez por partida)
   static const int costoRevivirBasic = 10;
   static const int costoRevivirPro = 5;
+  static const int segundosCuentaRegresiva = 3; // Después de revivir: 3, 2, 1 y sigue solo
 
   // Cuenta PRO
   static const int diamantesMensualesPro = 50; // Regalo mensual
