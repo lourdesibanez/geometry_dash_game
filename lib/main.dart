@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
     return ListenableBuilder(
       listenable: _controlador,
       builder: (context, _) => MaterialApp(
-        title: 'Geometry Dash Game',
+        title: 'Cubo Dash',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.temaClaro,
         darkTheme: AppTheme.temaOscuro,

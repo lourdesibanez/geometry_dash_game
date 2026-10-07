@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
 
-// Íconos del juego, cada uno con su color y la sombra azul marino de la app.
-// Se dibujan en un canvas: así los usa Flame (diamante del juego, premios flotantes)
-// y también Flutter (header, tienda, modales) a través de GameIconImage.
-// Es la única definición de cómo se ve cada uno.
+// Es la única definición de cómo se ve cada icono del juego.
 enum GameIcon {
   diamante(Icons.diamond_rounded, AppColors.diamante),
   estrella(Icons.star_rounded, AppColors.amarillo),

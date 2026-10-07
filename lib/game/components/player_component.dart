@@ -111,7 +111,8 @@ class PlayerComponent extends PositionComponent with HasGameReference<DashGame>,
     final radio = Radius.circular(lado * 0.25);
     canvas.drawRRect(RRect.fromRectAndRadius(rect, radio), Paint()..color = AppColors.amarillo);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect.deflate(1.5), radio),
+      // Curva un poco menor que la del fondo: así el amarillo no asoma en las puntas
+      RRect.fromRectAndRadius(rect.deflate(1.5), Radius.circular(lado * 0.25 - 1.5)),
       Paint()
         ..color = AppColors.tinta
         ..style = PaintingStyle.stroke

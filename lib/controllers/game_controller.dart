@@ -13,7 +13,7 @@ class GameController extends ChangeNotifier {
   int _ronda = 0; // Se incrementa en cada partida nueva para resetear el juego
   int _vecesRevivido = 0; // Se incrementa al revivir para sacar el obstáculo que nos golpeó
   bool _yaRevivio = false; // Un solo revivir por partida
-  int _diamantesPartida = 0; // Diamantes agarrados en esta partida (para el resumen final)
+  int _diamantesPartida = 0; // Diamantes agarrados en esta partida 
   bool _nuevoRecord = false; // Se superó el récord en esta partida
   int? _cuentaRegresiva; // 3, 2, 1 al revivir o en NUEVA PARTIDA; null = no hay cuenta en curso
   Timer? _temporizador;

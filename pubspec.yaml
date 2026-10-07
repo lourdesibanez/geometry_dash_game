@@ -47,6 +47,18 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  # Genera los íconos de la app en todos los tamaños (se corre una vez: dart run flutter_launcher_icons)
+  flutter_launcher_icons: ^0.14.4
+
+# Ícono de la app: el cubo del juego (assets/icon, generado con el mismo dibujo que PlayerComponent)
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  # Ícono adaptable de Android (8+): fondo turquesa + cubo con margen para cualquier forma
+  adaptive_icon_background: "#22C3B4"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
