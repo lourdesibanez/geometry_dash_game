@@ -10,6 +10,7 @@ import '../molecules/counter_item.dart';
 class Header extends StatelessWidget {
   final PlayerState estadoJugador;
   final VoidCallback alCambiarTema;
+  final VoidCallback alCambiarSonido;
   final VoidCallback alAbrirTienda;
   final VoidCallback alTocarCuenta;
 
@@ -17,6 +18,7 @@ class Header extends StatelessWidget {
     super.key,
     required this.estadoJugador,
     required this.alCambiarTema,
+    required this.alCambiarSonido,
     required this.alAbrirTienda,
     required this.alTocarCuenta,
   });
@@ -90,6 +92,16 @@ class Header extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Botón de sonido (música y efectos)
+                Button(
+                  icono: estadoJugador.sonidoActivado ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                  alPresionar: alCambiarSonido,
+                  colorFondo: AppColors.violeta,
+                  colorTexto: AppColors.amarillo,
+                  radio: 999,
+                  descripcion: estadoJugador.sonidoActivado ? 'Silenciar sonido' : 'Activar sonido',
+                ),
+                const SizedBox(width: 8),
                 // Botón de tema claro/oscuro
                 Button(
                   icono: estadoJugador.modoOscuro ? Icons.wb_sunny_rounded : Icons.nightlight_round,

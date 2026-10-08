@@ -3,6 +3,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../services/audio_service.dart';
 import '../dash_game.dart';
 import '../game_config.dart';
 import '../game_icons.dart';
@@ -46,7 +47,9 @@ class PlayerComponent extends PositionComponent with HasGameReference<DashGame>,
     }
   }
 
+  // Suena acá (y no al tocar) para que el salto anticipado suene cuando de verdad salta
   void _iniciarSalto() {
+    AudioService.salto();
     _velocidad = GameConfig.velocidadSalto;
     _tiempoEnAire = 0;
     _saltoAnticipado = 0;

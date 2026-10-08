@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../controllers/game_controller.dart';
 import '../core/theme.dart';
+import '../models/game_state.dart';
+import '../services/audio_service.dart';
 import '../components/organisms/header.dart';
 import '../components/organisms/control_panel.dart';
 import '../components/organisms/game_canvas.dart';
@@ -28,10 +30,27 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    _juego.addListener(_sincronizarSonido);
     _cargar();
   }
 
+  @override
+  void dispose() {
+    _juego.removeListener(_sincronizarSonido);
+    super.dispose();
+  }
+
+  // La música sigue a la partida (suena jugando, se pausa en pausa) y respeta el botón de sonido
+  void _sincronizarSonido() {
+    AudioService.silenciado = !_juego.sonidoActivado;
+    AudioService.sincronizarMusica(
+      jugando: _juego.estadoJuego == GameState.playing,
+      enPausa: _juego.estadoJuego == GameState.paused,
+    );
+  }
+
   Future<void> _cargar() async {
+    AudioService.precargar();
     final regalo = await _juego.cargar();
     if (!mounted || regalo == 0) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -143,6 +162,7 @@ class _GameScreenState extends State<GameScreen> {
               alAbrirTienda: _abrirTiendaDesdeHeader,
               alTocarCuenta: _alTocarCuenta,
               alCambiarTema: _juego.alternarTema,
+              alCambiarSonido: _juego.alternarSonido,
             ),
             Expanded(
               child: GameCanvas(

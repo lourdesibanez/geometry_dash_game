@@ -25,6 +25,7 @@ class GameController extends ChangeNotifier {
   int get vecesRevivido => _vecesRevivido;
   bool get esPro => _jugador.esPro;
   bool get modoOscuro => _jugador.modoOscuro;
+  bool get sonidoActivado => _jugador.sonidoActivado;
   int get costoRevivir => esPro ? GameRules.costoRevivirPro : GameRules.costoRevivirBasic;
   int get diamantesPartida => _diamantesPartida;
   bool get nuevoRecord => _nuevoRecord;
@@ -161,6 +162,10 @@ class GameController extends ChangeNotifier {
 
   void alternarTema() {
     _actualizar(_jugador.copiarCon(modoOscuro: !_jugador.modoOscuro));
+  }
+
+  void alternarSonido() {
+    _actualizar(_jugador.copiarCon(sonidoActivado: !_jugador.sonidoActivado));
   }
 
   // ---------- Internos ----------

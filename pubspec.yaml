@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.5
   flame: ^1.38.2 # Motor de juego 2D (el juego corre dentro de un GameWidget)
+  flame_audio: ^2.12.2 # Música de fondo y efectos (busca los archivos en assets/audio)
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Sonidos del juego (flame_audio los lee de esta carpeta)
+  assets:
+    - assets/audio/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -2,7 +2,7 @@ import '../core/game_rules.dart';
 
 enum AccountType { basic, pro }
 
-//	Cómo es un jugador: nombre, puntaje, récord, diamantes, cuenta, tema.
+//	Cómo es un jugador: nombre, puntaje, récord, diamantes, cuenta, tema, sonido.
 class PlayerState {
   final String nombreUsuario;
   final int puntaje;
@@ -10,6 +10,7 @@ class PlayerState {
   final AccountType tipoCuenta;
   final int diamantes;
   final bool modoOscuro;
+  final bool sonidoActivado;
   final int? ultimoRegaloPro; // Última entrega de diamantes mensuales PRO (ms desde epoch)
 
   PlayerState({
@@ -19,6 +20,7 @@ class PlayerState {
     required this.tipoCuenta,
     required this.diamantes,
     required this.modoOscuro,
+    this.sonidoActivado = true,
     this.ultimoRegaloPro,
   });
 
@@ -45,6 +47,7 @@ class PlayerState {
         'accountType': tipoCuenta.name, // Se guarda como 'basic' | 'pro'
         'diamonds': diamantes,
         'isDarkMode': modoOscuro,
+        'soundOn': sonidoActivado,
         'lastProGiftAt': ultimoRegaloPro,
       };
 
@@ -57,6 +60,7 @@ class PlayerState {
       tipoCuenta: AccountType.values.asNameMap()[json['accountType']] ?? AccountType.basic,
       diamantes: json['diamonds'] ?? GameRules.diamantesIniciales,
       modoOscuro: json['isDarkMode'] ?? false,
+      sonidoActivado: json['soundOn'] ?? true,
       ultimoRegaloPro: json['lastProGiftAt'],
     );
   }
@@ -69,6 +73,7 @@ class PlayerState {
     AccountType? tipoCuenta,
     int? diamantes,
     bool? modoOscuro,
+    bool? sonidoActivado,
     int? ultimoRegaloPro,
   }) {
     return PlayerState(
@@ -78,6 +83,7 @@ class PlayerState {
       tipoCuenta: tipoCuenta ?? this.tipoCuenta,
       diamantes: diamantes ?? this.diamantes,
       modoOscuro: modoOscuro ?? this.modoOscuro,
+      sonidoActivado: sonidoActivado ?? this.sonidoActivado,
       ultimoRegaloPro: ultimoRegaloPro ?? this.ultimoRegaloPro,
     );
   }

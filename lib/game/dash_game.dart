@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import '../core/game_rules.dart';
+import '../services/audio_service.dart';
 import 'components/diamond_component.dart';
 import 'components/floating_reward_component.dart';
 import 'components/ground_component.dart';
@@ -75,12 +76,14 @@ class DashGame extends FlameGame with TapCallbacks, HasCollisionDetection {
   void manejarChoque() {
     if (!corriendo) return;
     corriendo = false; // Se congela en el acto, antes de que Flutter cambie de estado
+    AudioService.choque();
     alChocar();
   }
 
   void agarrarDiamante(DiamondComponent diamante) {
     if (!corriendo) return;
     obstaculo.quitarDiamante();
+    AudioService.diamante();
     // "+1" con diamante que sale desde arriba del cubo, sube y se desvanece
     add(FloatingRewardComponent(
       texto: '+${GameRules.diamantesPorAgarrar}',
